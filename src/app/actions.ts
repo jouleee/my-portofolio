@@ -631,6 +631,9 @@ export async function updateProject(id: string, projectData: any) {
         pinned: projectData.pinned,
       };
     }
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard');
+    return { success: true };
   }
 }
 
