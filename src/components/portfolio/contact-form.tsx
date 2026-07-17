@@ -54,7 +54,7 @@ export default function ContactForm() {
   };
 
   return (
-    <section id="contact" className="py-20 md:py-32 border-b-[3px] border-brutalist-dark dark:border-brutalist-light bg-muted/10 dark:bg-transparent">
+    <section id="contact" className="py-20 md:py-32 bg-muted/10 dark:bg-transparent">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <ScrollReveal yOffset={30}>

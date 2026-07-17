@@ -16,7 +16,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md border-b-[3px] border-brutalist-dark dark:border-brutalist-light transition-colors duration-300">
+    <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <button

@@ -23,7 +23,7 @@ export default function ProjectsShowcase({ projects }: ProjectsShowcaseProps) {
     : projects.filter((p) => (p.categories?.name || 'Development') === selectedCategory);
 
   return (
-    <section id="projects" className="py-20 md:py-32 border-b-[3px] border-brutalist-dark dark:border-brutalist-light">
+    <section id="projects" className="py-20 md:py-32">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header & Filtering Controls */}
         <ScrollReveal yOffset={35}>

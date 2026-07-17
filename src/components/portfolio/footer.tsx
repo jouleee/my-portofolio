@@ -38,7 +38,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="py-12 border-t-[3px] border-brutalist-dark dark:border-brutalist-light bg-background transition-colors duration-300">
+    <footer className="py-12 bg-background transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
         {/* Left column: branding & copyright */}
         <div className="font-space-grotesk font-bold text-sm text-center md:text-left">

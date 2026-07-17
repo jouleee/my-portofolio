@@ -244,7 +244,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         )}
 
         {/* Next Project Teaser Navigation */}
-        <div className="pt-12 border-t-4 border-brutalist-dark dark:border-brutalist-light mb-12">
+        <div className="pt-12 mb-12">
           <span className="text-xs font-black uppercase tracking-widest text-brutalist-pink font-space-grotesk block mb-2">
             Up Next
           </span>

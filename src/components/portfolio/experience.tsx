@@ -27,7 +27,7 @@ export default function Experience({ experiences }: ExperienceProps) {
   ];
 
   return (
-    <section id="experience" className="py-20 md:py-32 border-b-[3px] border-brutalist-dark dark:border-brutalist-light bg-muted/10 dark:bg-transparent">
+    <section id="experience" className="py-20 md:py-32 bg-muted/10 dark:bg-transparent">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Title */}
         <ScrollReveal yOffset={30}>

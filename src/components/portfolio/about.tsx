@@ -36,7 +36,7 @@ export default function About({ profile, skills }: AboutProps) {
   };
 
   return (
-    <section id="about" className="py-20 md:py-32 border-b-[3px] border-brutalist-dark dark:border-brutalist-light relative">
+    <section id="about" className="py-20 md:py-32 relative">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Title */}
         <ScrollReveal yOffset={30}>
