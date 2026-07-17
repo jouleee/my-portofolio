@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-border-color: var(--border-color);
+  
+  --color-brutalist-yellow: #ffe600;
+  --color-brutalist-pink: #ff007a;
+  --color-brutalist-blue: #0057ff;
+  --color-brutalist-orange: #ff5c00;
+  --color-brutalist-green: #00e575;
+  --color-brutalist-dark: #0f0f0f;
+  --color-brutalist-light: #fdfdfc;
+  
+  --font-space-grotesk: var(--font-space-grotesk);
+  --font-syne: var(--font-syne);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #fdfdfc;
+  --foreground: #0f0f0f;
+  --border-color: #0f0f0f;
+  --spotlight-glow: rgba(255, 0, 122, 0.08);
+}
+
+.dark {
+  --background: #0f0f0f;
+  --foreground: #fdfdfc;
+  --border-color: #fdfdfc;
+  --spotlight-glow: rgba(0, 87, 255, 0.15);
+}
+
+/* Custom Brutalist Utilities */
+@utility brutalist-border {
+  border: 3px solid var(--border-color);
+}
+
+@utility brutalist-border-thin {
+  border: 2px solid var(--border-color);
+}
+
+@utility brutalist-shadow-yellow {
+  box-shadow: 4px 4px 0px 0px #ffe600;
+}
+
+@utility brutalist-shadow-pink {
+  box-shadow: 4px 4px 0px 0px #ff007a;
+}
+
+@utility brutalist-shadow-blue {
+  box-shadow: 4px 4px 0px 0px #0057ff;
+}
+
+@utility brutalist-shadow-orange {
+  box-shadow: 4px 4px 0px 0px #ff5c00;
+}
+
+@utility brutalist-shadow-green {
+  box-shadow: 4px 4px 0px 0px #00e575;
+}
+
+@utility brutalist-shadow-black {
+  box-shadow: 4px 4px 0px 0px var(--border-color);
+}
+
+@utility brutalist-shadow-black-lg {
+  box-shadow: 8px 8px 0px 0px var(--border-color);
+}
+
+@utility brutalist-shadow-black-sm {
+  box-shadow: 2px 2px 0px 0px var(--border-color);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+  border-left: 3px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border: 2px solid var(--background);
+  border-radius: 6px;
+}
+
+/* Lenis scroll settings */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Hide default browser cursor when custom cursor is active */
+@media (pointer: fine) {
+  html:not(.use-default-cursor) body,
+  html:not(.use-default-cursor) a,
+  html:not(.use-default-cursor) button,
+  html:not(.use-default-cursor) [role="button"],
+  html:not(.use-default-cursor) input,
+  html:not(.use-default-cursor) textarea,
+  html:not(.use-default-cursor) select,
+  html:not(.use-default-cursor) [data-cursor] {
+    cursor: none !important;
+  }
+}
+
+/* Hardware-accelerated text waving animation */
+@keyframes textWave {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-text-wave {
+  display: inline-block;
+  will-change: transform;
+  animation: textWave 3.5s ease-in-out infinite;
+}
+
