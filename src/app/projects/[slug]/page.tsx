@@ -26,6 +26,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   
   let project;
   let projects: any[] = [];
+  let isError = false;
   
   try {
     const [fetchedProject, fetchedProjects] = await Promise.all([
@@ -36,6 +37,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     projects = fetchedProjects;
   } catch (err) {
     console.error('Failed to load project details:', err);
+    isError = true;
+  }
+
+  if (isError || !project) {
     notFound();
   }
 
