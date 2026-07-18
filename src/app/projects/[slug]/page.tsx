@@ -122,7 +122,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 brutalist-border rounded-2xl p-6 mb-12 bg-background brutalist-shadow-black">
           <div className="flex items-center gap-3 font-space-grotesk">
             <div className="w-10 h-10 rounded-xl bg-brutalist-yellow/20 brutalist-border-thin flex items-center justify-center shrink-0">
-              <User className="w-5 h-5 text-brutalist-dark dark:text-brutalist-light" />
+              <User className="w-5 h-5 text-black dark:text-white" />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase text-foreground/50 block">Role</span>
@@ -132,7 +132,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
           <div className="flex items-center gap-3 font-space-grotesk">
             <div className="w-10 h-10 rounded-xl bg-brutalist-pink/20 brutalist-border-thin flex items-center justify-center shrink-0">
-              <Briefcase className="w-5 h-5 text-brutalist-dark dark:text-brutalist-light" />
+              <Briefcase className="w-5 h-5 text-black dark:text-white" />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase text-foreground/50 block">Client</span>
@@ -142,7 +142,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
           <div className="flex items-center gap-3 font-space-grotesk">
             <div className="w-10 h-10 rounded-xl bg-brutalist-blue/20 brutalist-border-thin flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-brutalist-dark dark:text-brutalist-light" />
+              <Clock className="w-5 h-5 text-black dark:text-white" />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase text-foreground/50 block">Duration</span>
@@ -152,7 +152,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
           <div className="flex items-center gap-3 font-space-grotesk">
             <div className="w-10 h-10 rounded-xl bg-brutalist-green/20 brutalist-border-thin flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-brutalist-dark dark:text-brutalist-light" />
+              <Calendar className="w-5 h-5 text-black dark:text-white" />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase text-foreground/50 block">Status</span>
