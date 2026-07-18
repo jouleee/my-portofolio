@@ -1,6 +1,7 @@
 import { getProjectBySlug, getProjects } from '@/app/actions';
 import Image from 'next/image';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import Header from '@/components/portfolio/header';
 import Footer from '@/components/portfolio/footer';
 import Magnetic from '@/components/portfolio/magnetic';
@@ -23,15 +24,26 @@ export async function generateStaticParams() {
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { slug } = await params;
   
-  // Fetch database queries concurrently to reduce query latency by half
-  const [project, projects] = await Promise.all([
-    getProjectBySlug(slug),
-    getProjects(),
-  ]);
+  let project;
+  let projects: any[] = [];
+  
+  try {
+    const [fetchedProject, fetchedProjects] = await Promise.all([
+      getProjectBySlug(slug),
+      getProjects(),
+    ]);
+    project = fetchedProject;
+    projects = fetchedProjects;
+  } catch (err) {
+    console.error('Failed to load project details:', err);
+    notFound();
+  }
 
   // Find next project for the teaser footer
   const currentIndex = projects.findIndex((p: any) => p.slug === slug);
-  const nextProject = projects[currentIndex !== -1 ? (currentIndex + 1) % projects.length : 0];
+  const nextProject = projects.length > 0 
+    ? projects[currentIndex !== -1 ? (currentIndex + 1) % projects.length : 0]
+    : null;
 
   const year = project.project_date 
     ? new Date(project.project_date).getFullYear().toString() 
@@ -40,7 +52,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const categoryName = project.categories?.name || 'Development';
   
   // Extract technologies
-  const techs = project.project_technologies?.map((pt: any) => pt.technologies.name) || ['React', 'Next.js'];
+  const techs = project.project_technologies
+    ?.map((pt: any) => pt.technologies?.name)
+    .filter((name: any): name is string => typeof name === 'string') || ['React', 'Next.js'];
 
   return (
     <div className="relative min-h-screen flex flex-col">
@@ -244,30 +258,32 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         )}
 
         {/* Next Project Teaser Navigation */}
-        <div className="pt-12 mb-12">
-          <span className="text-xs font-black uppercase tracking-widest text-brutalist-pink font-space-grotesk block mb-2">
-            Up Next
-          </span>
-          
-          <Link
-            href={`/projects/${nextProject.slug}`}
-            className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-brutalist-blue text-white brutalist-border rounded-2xl p-8 shadow-[6px_6px_0px_0px_var(--border-color)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_var(--border-color)] transition-all"
-            data-cursor="pink-view"
-          >
-            <div>
-              <span className="text-xs font-black uppercase tracking-wider text-brutalist-yellow font-space-grotesk mb-1 block">
-                {nextProject.categories?.name || 'Development'}
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-black uppercase font-syne tracking-tight group-hover:text-brutalist-yellow transition-colors duration-200">
-                {nextProject.title}
-              </h2>
-            </div>
+        {nextProject && (
+          <div className="pt-12 mb-12">
+            <span className="text-xs font-black uppercase tracking-widest text-brutalist-pink font-space-grotesk block mb-2">
+              Up Next
+            </span>
             
-            <div className="w-14 h-14 rounded-full brutalist-border-thin flex items-center justify-center bg-white text-brutalist-dark group-hover:bg-brutalist-yellow transition-colors duration-200 shrink-0">
-              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
-            </div>
-          </Link>
-        </div>
+            <Link
+              href={`/projects/${nextProject.slug}`}
+              className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-brutalist-blue text-white brutalist-border rounded-2xl p-8 shadow-[6px_6px_0px_0px_var(--border-color)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_var(--border-color)] transition-all"
+              data-cursor="pink-view"
+            >
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-brutalist-yellow font-space-grotesk mb-1 block">
+                  {nextProject.categories?.name || 'Development'}
+                </span>
+                <h2 className="text-3xl sm:text-5xl font-black uppercase font-syne tracking-tight group-hover:text-brutalist-yellow transition-colors duration-200">
+                  {nextProject.title}
+                </h2>
+              </div>
+              
+              <div className="w-14 h-14 rounded-full brutalist-border-thin flex items-center justify-center bg-white text-brutalist-dark group-hover:bg-brutalist-yellow transition-colors duration-200 shrink-0">
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-200" />
+              </div>
+            </Link>
+          </div>
+        )}
       </main>
 
       <Footer />

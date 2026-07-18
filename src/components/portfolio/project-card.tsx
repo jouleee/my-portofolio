@@ -35,7 +35,11 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
   // Get up to 3 technologies
   const techs = project.project_technologies
-    ?.map((pt) => pt.technologies.name)
+    ?.map((pt) => {
+      const tech = pt.technologies as unknown as { name?: string } | null;
+      return tech?.name;
+    })
+    .filter((name): name is string => !!name)
     .slice(0, 3) || ['React', 'Next.js', 'Tailwind'];
 
   // Playful colors for flat shadows on hover
