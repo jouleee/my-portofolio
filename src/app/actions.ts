@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createPublicClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 // Fallback Mock Data
@@ -179,7 +179,7 @@ export async function getProfile() {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -199,7 +199,7 @@ export async function getCategories() {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -218,7 +218,7 @@ export async function getProjects() {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('projects')
         .select('*, categories(name), project_technologies(technologies(name))')
@@ -239,7 +239,7 @@ export async function getProjectBySlug(slug: string) {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('projects')
         .select('*, categories(name), project_technologies(technologies(name)), project_images(*)')
@@ -263,7 +263,7 @@ export async function getExperiences() {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('experiences')
         .select('*')
@@ -282,7 +282,7 @@ export async function getSkills() {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('skills')
         .select('*')
@@ -301,7 +301,7 @@ export async function getSocialLinks() {
   const dbConfigured = isDatabaseConfigured();
   if (dbConfigured) {
     try {
-      const supabase = await createClient();
+      const supabase = createPublicClient();
       const { data, error } = await supabase
         .from('social_links')
         .select('*');
