@@ -6,8 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createProject, updateProject } from '@/app/actions';
+import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2, Save, Upload } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
 const projectFormSchema = z.object({
@@ -42,10 +43,13 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -71,16 +75,69 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
     },
   });
 
+  const currentThumbnailUrl = watch('thumbnail_url');
+  const displayImage = previewUrl || currentThumbnailUrl;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setThumbnailFile(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const handleRemoveThumbnail = () => {
+    setThumbnailFile(null);
+    setPreviewUrl(null);
+    setValue('thumbnail_url', '');
+  };
+
+
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
     try {
       const finalData = { ...data };
 
-      // Handle file upload simulation
+      // Handle file upload
       if (thumbnailFile) {
-        // Simulated upload: generate a temporary blob URL or save mock path
-        finalData.thumbnail_url = URL.createObjectURL(thumbnailFile);
-        toast.info('File uploaded in simulated local storage.');
+        const isDbConfigured = () => {
+          const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          return url && url !== 'https://your-project-id.supabase.co' && !url.includes('your-project-id');
+        };
+
+        if (isDbConfigured()) {
+          const supabase = createClient();
+          
+          // Generate a safe, unique filename
+          const fileExt = thumbnailFile.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+          const filePath = `thumbnails/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('projects')
+            .upload(filePath, thumbnailFile, {
+              cacheControl: '3600',
+              upsert: false,
+            });
+
+          if (uploadError) {
+            console.error('Supabase storage upload error:', uploadError);
+            throw new Error(`Storage upload failed: ${uploadError.message}. Silakan pastikan bucket 'projects' sudah dibuat dan diatur public di Supabase.`);
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('projects')
+            .getPublicUrl(filePath);
+
+          finalData.thumbnail_url = publicUrl;
+        } else {
+          // Simulated upload: generate a temporary blob URL or save mock path
+          finalData.thumbnail_url = URL.createObjectURL(thumbnailFile);
+          toast.info('File uploaded in simulated local storage.');
+        }
       }
 
       const res = project?.id
@@ -94,8 +151,10 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
       } else {
         toast.error(res.error || 'Failed to save project details.');
       }
-    } catch {
-      toast.error('An error occurred during submission.');
+    } catch (err) {
+      console.error('Submission error:', err);
+      const errMsg = err instanceof Error ? err.message : 'An error occurred during submission.';
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -292,26 +351,56 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
           </div>
 
           {/* Thumbnail File Selection */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <label className="text-sm font-black uppercase text-foreground font-space-grotesk">Thumbnail Image</label>
-            <div className="w-full p-6 brutalist-border rounded-xl border-dashed flex flex-col items-center justify-center bg-muted/5 gap-2 hover:bg-muted/10 transition-colors">
-              <Upload className="w-8 h-8 text-foreground/50" />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
-                className="hidden"
-                id="thumbnail-upload-trigger"
-              />
-              <label
-                htmlFor="thumbnail-upload-trigger"
-                className="px-4 py-2 bg-brutalist-pink text-white brutalist-border-thin rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer shadow-[2px_2px_0px_0px_var(--border-color)] active:translate-x-0.5 active:translate-y-0.5"
-              >
-                Select Thumbnail
-              </label>
-              <span className="text-xs font-bold text-foreground/50 mt-1 uppercase">
-                {thumbnailFile ? `Selected: ${thumbnailFile.name}` : 'JPG, PNG, WebP up to 5MB'}
-              </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+              <div className="md:col-span-2 w-full p-6 brutalist-border rounded-xl border-dashed flex flex-col items-center justify-center bg-muted/5 gap-2 hover:bg-muted/10 transition-colors min-h-[180px]">
+                <Upload className="w-8 h-8 text-foreground/50" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="thumbnail-upload-trigger"
+                />
+                <label
+                  htmlFor="thumbnail-upload-trigger"
+                  className="px-4 py-2 bg-brutalist-pink text-white brutalist-border-thin rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer shadow-[2px_2px_0px_0px_var(--border-color)] active:translate-x-0.5 active:translate-y-0.5"
+                >
+                  Select Thumbnail
+                </label>
+                <span className="text-xs font-bold text-foreground/50 mt-1 uppercase text-center break-all max-w-[280px]">
+                  {thumbnailFile ? `Selected: ${thumbnailFile.name}` : 'JPG, PNG, WebP up to 5MB'}
+                </span>
+              </div>
+
+              {/* Live Preview Panel */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-black uppercase text-foreground/75 font-space-grotesk">Live Preview</span>
+                {displayImage ? (
+                  <div className="relative w-full aspect-video brutalist-border rounded-xl overflow-hidden bg-muted/10 group shadow-[4px_4px_0px_0px_var(--border-color)]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={displayImage}
+                      alt="Thumbnail Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveThumbnail}
+                      className="absolute top-2 right-2 p-1.5 bg-brutalist-pink text-white rounded-lg brutalist-border-thin shadow-[2px_2px_0px_0px_#000] cursor-pointer hover:bg-red-600 transition-colors"
+                      title="Remove Image"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-full aspect-video brutalist-border rounded-xl border-dashed flex flex-col items-center justify-center bg-muted/5 text-foreground/30 text-xs font-bold uppercase gap-1 select-none">
+                    <ImageIcon className="w-6 h-6" />
+                    <span>No Preview Available</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

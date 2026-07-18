@@ -268,3 +268,21 @@ $$ language plpgsql security definer;
 create or replace trigger on_auth_user_created
     after insert on auth.users
     for each row execute procedure public.handle_new_user();
+
+-- 15. Storage Bucket Setup for Project Thumbnails/Images
+-- We create a public bucket named 'projects' if it doesn't already exist.
+insert into storage.buckets (id, name, public)
+values ('projects', 'projects', true)
+on conflict (id) do nothing;
+
+-- Set up policies for storage access
+-- Allow public read access to all files in the projects bucket
+create policy "Allow public read access to projects bucket" on storage.objects
+    for select using (bucket_id = 'projects');
+
+-- Allow authenticated users (admin) to insert/update/delete objects in the projects bucket
+create policy "Allow authenticated admin full access to projects bucket" on storage.objects
+    for all using (
+        bucket_id = 'projects' 
+        and auth.role() = 'authenticated'
+    );
