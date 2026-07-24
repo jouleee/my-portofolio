@@ -8,23 +8,27 @@ import { ArrowDown } from 'lucide-react';
 import Marquee from '@/components/portfolio/marquee';
 
 export default function Hero() {
-  const [roleIndex, setRoleIndex] = useState(0);
+  const [greetingIndex, setGreetingIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
 
-  const roles = [
-    'Software Engineer',
-    'Full-Stack Developer',
-    'SaaS Builder',
-    'Product Builder',
+  const greetings = [
+    'Halo!',
+    'Hola!',
+    'Bonjour!',
+    'Ciao!',
+    'Konnichiwa!',
+    'Olá!',
+    'Nǐ Hǎo!',
+    'Hi there!',
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setRoleIndex((prev) => (prev + 1) % roles.length);
-    }, 3000);
+      setGreetingIndex((prev) => (prev + 1) % greetings.length);
+    }, 2200);
     return () => clearInterval(timer);
-  }, []);
+  }, [greetings.length]);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -61,28 +65,43 @@ export default function Hero() {
 
       {/* Hero Body Content */}
       <div className="max-w-5xl mx-auto px-6 text-center flex-1 flex flex-col justify-center items-center">
-        {/* Playful Category Accents */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-3 mb-8 h-10 items-center"
-        >
-          <div className="relative overflow-hidden h-8 px-4 py-1 flex items-center justify-center rounded-full bg-brutalist-pink text-brutalist-dark brutalist-border-thin text-xs font-black uppercase tracking-widest font-space-grotesk rotate-[-2deg] select-none">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={roles[roleIndex]}
-                initial={{ y: 15, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -15, opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="inline-block"
-              >
-                {roles[roleIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-        </motion.div>
+        {/* Playful Floating Stagger Greeting */}
+        <div className="mb-4 h-12 flex items-center justify-center font-space-grotesk text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-foreground select-none overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={greetings[greetingIndex]}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14, transition: { duration: 0.18, ease: 'easeOut' } }}
+              className="flex items-center justify-center gap-[2px]"
+            >
+              {Array.from(greetings[greetingIndex]).map((char, index) => (
+                <motion.span
+                  key={`${greetings[greetingIndex]}-${index}`}
+                  initial={{ opacity: 0, y: 14, rotate: index % 2 === 0 ? -8 : 8, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
+                  transition={{
+                    duration: 0.28,
+                    delay: index * 0.025,
+                    type: 'spring',
+                    stiffness: 320,
+                    damping: 18,
+                  }}
+                  whileHover={{
+                    y: -10,
+                    scale: 1.25,
+                    rotate: index % 2 === 0 ? 10 : -10,
+                    transition: { type: 'spring', stiffness: 400, damping: 8 },
+                  }}
+                  className="inline-block cursor-pointer"
+                  data-cursor="pointer"
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </motion.span>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Dynamic Big Typography Header */}
         <motion.h1
