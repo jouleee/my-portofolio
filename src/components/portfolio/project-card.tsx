@@ -33,14 +33,16 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
   const categoryName = project.categories?.name || 'Development';
 
-  // Get up to 3 technologies
-  const techs = project.project_technologies
-    ?.map((pt) => {
-      const tech = pt.technologies as unknown as { name?: string } | null;
-      return tech?.name;
+  // Get up to 3 technologies safely
+  const techs = (project.project_technologies || [])
+    .map((pt: any) => {
+      if (typeof pt === 'string') return pt;
+      if (pt?.technologies?.name) return pt.technologies.name;
+      if (pt?.name) return pt.name;
+      return null;
     })
-    .filter((name): name is string => !!name)
-    .slice(0, 3) || ['React', 'Next.js', 'Tailwind'];
+    .filter((name: any): name is string => typeof name === 'string' && name.length > 0)
+    .slice(0, 3);
 
   // Playful colors for flat shadows on hover
   const shadowColors = [
@@ -109,17 +111,19 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
           {project.short_description}
         </p>
 
-        {/* Tech Stack List */}
-        <div className="flex flex-wrap gap-2 pt-4 border-t brutalist-border-thin border-dashed">
-          {techs.map((t, idx) => (
-            <span
-              key={idx}
-              className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-brutalist-light dark:bg-brutalist-dark brutalist-border-thin rounded-md font-space-grotesk"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
+        {/* Tech Stack Pills */}
+        {techs.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-3">
+            {techs.map((t, idx) => (
+              <span
+                key={idx}
+                className="px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full bg-muted/20 text-foreground font-space-grotesk brutalist-border-thin"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </Link>
     </motion.div>
   );

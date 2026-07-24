@@ -13,9 +13,10 @@ const MOCK_PROFILE = {
 };
 
 const MOCK_CATEGORIES = [
-  { id: '1', name: 'Web Applications', slug: 'web-apps' },
-  { id: '2', name: 'Creative Development', slug: 'creative-dev' },
-  { id: '3', name: 'UI/UX Design', slug: 'ui-ux' },
+  { id: '1', name: 'Web Applications', slug: 'web-applications' },
+  { id: '2', name: 'Mobile Applications', slug: 'mobile-applications' },
+  { id: '3', name: 'Games', slug: 'games' },
+  { id: '4', name: 'AI / Data', slug: 'ai-data' },
 ];
 
 let MOCK_PROJECTS = [
@@ -37,7 +38,7 @@ let MOCK_PROJECTS = [
     status: 'published',
     featured: true,
     pinned: true,
-    categories: { name: 'Creative Development' },
+    categories: { name: 'Web Applications' },
     project_technologies: [
       { technologies: { name: 'Next.js' } },
       { technologies: { name: 'Three.js' } },
@@ -64,9 +65,9 @@ let MOCK_PROJECTS = [
     status: 'published',
     featured: true,
     pinned: false,
-    categories: { name: 'Web Applications' },
+    categories: { name: 'Mobile Applications' },
     project_technologies: [
-      { technologies: { name: 'React' } },
+      { technologies: { name: 'React Native' } },
       { technologies: { name: 'Supabase' } },
       { technologies: { name: 'Tailwind CSS' } },
       { technologies: { name: 'Zod' } },
@@ -91,7 +92,7 @@ let MOCK_PROJECTS = [
     status: 'published',
     featured: false,
     pinned: false,
-    categories: { name: 'UI/UX Design' },
+    categories: { name: 'AI / Data' },
     project_technologies: [
       { technologies: { name: 'TypeScript' } },
       { technologies: { name: 'Tailwind CSS' } },
@@ -413,7 +414,7 @@ export async function getAdminProjects() {
       const supabase = await createClient();
       const { data, error } = await supabase
         .from('projects')
-        .select('*, categories(name)')
+        .select('*, categories(name), project_technologies(technologies(name))')
         .order('sort_order', { ascending: true });
 
       if (error || !data) return [];
@@ -493,6 +494,40 @@ const isUUID = (val: string) => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val);
 };
 
+async function syncProjectTechnologies(supabase: any, projectId: string, techInput?: string) {
+  if (techInput === undefined || techInput === null) return;
+  const techNames = techInput
+    .split(',')
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+
+  await supabase.from('project_technologies').delete().eq('project_id', projectId);
+
+  for (const name of techNames) {
+    let { data: existing } = await supabase
+      .from('technologies')
+      .select('id')
+      .eq('name', name)
+      .maybeSingle();
+
+    let techId = existing?.id;
+    if (!techId) {
+      const { data: inserted } = await supabase
+        .from('technologies')
+        .insert([{ name }])
+        .select('id')
+        .single();
+      techId = inserted?.id;
+    }
+
+    if (techId) {
+      await supabase
+        .from('project_technologies')
+        .insert([{ project_id: projectId, technology_id: techId }]);
+    }
+  }
+}
+
 export async function createProject(projectData: any) {
   const dbConfigured = isDatabaseConfigured();
   const categoryId = projectData.category_id && isUUID(projectData.category_id) ? projectData.category_id : null;
@@ -500,33 +535,42 @@ export async function createProject(projectData: any) {
   if (dbConfigured) {
     try {
       const supabase = await createClient();
-      const { error } = await supabase.from('projects').insert([
-        {
-          title: projectData.title,
-          slug: projectData.slug,
-          short_description: projectData.short_description,
-          description: projectData.description,
-          challenge: projectData.challenge,
-          solution: projectData.solution,
-          category_id: categoryId,
-          thumbnail_url: projectData.thumbnail_url || '',
-          demo_url: projectData.demo_url || '',
-          github_url: projectData.github_url || '',
-          project_date: projectData.project_date || new Date().toISOString().split('T')[0],
-          role: projectData.role || '',
-          client: projectData.client || '',
-          duration: projectData.duration || '',
-          status: projectData.status || 'draft',
-          featured: projectData.featured || false,
-          pinned: projectData.pinned || false,
-          sort_order: parseInt(projectData.sort_order || '0'),
-        },
-      ]);
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([
+          {
+            title: projectData.title,
+            slug: projectData.slug,
+            short_description: projectData.short_description,
+            description: projectData.description,
+            challenge: projectData.challenge,
+            solution: projectData.solution,
+            category_id: categoryId,
+            thumbnail_url: projectData.thumbnail_url || '',
+            demo_url: projectData.demo_url || '',
+            github_url: projectData.github_url || '',
+            project_date: projectData.project_date || new Date().toISOString().split('T')[0],
+            role: projectData.role || '',
+            client: projectData.client || '',
+            duration: projectData.duration || '',
+            status: projectData.status || 'draft',
+            featured: projectData.featured || false,
+            pinned: projectData.pinned || false,
+            sort_order: parseInt(projectData.sort_order || '0'),
+          },
+        ])
+        .select('id')
+        .single();
 
       if (error) {
         console.error('Supabase createProject error:', error);
         return { success: false, error: error.message };
       }
+
+      if (data?.id) {
+        await syncProjectTechnologies(supabase, data.id, projectData.technologies_used);
+      }
+
       revalidatePath('/');
       revalidatePath('/admin/dashboard');
       return { success: true };
@@ -536,6 +580,11 @@ export async function createProject(projectData: any) {
     }
   } else {
     // Offline Mock Save Sandbox
+    const techList = (projectData.technologies_used || '')
+      .split(',')
+      .map((t: string) => t.trim())
+      .filter((t: string) => t.length > 0);
+
     const newProj = {
       id: `proj-${Date.now()}`,
       title: projectData.title,
@@ -555,7 +604,7 @@ export async function createProject(projectData: any) {
       featured: projectData.featured || false,
       pinned: projectData.pinned || false,
       categories: { name: 'Web Applications' },
-      project_technologies: [{ technologies: { name: 'React' } }],
+      project_technologies: techList.map((t: string) => ({ technologies: { name: t } })),
       project_images: [],
     };
     MOCK_PROJECTS.push(newProj);
@@ -600,6 +649,9 @@ export async function updateProject(id: string, projectData: any) {
         console.error('Supabase updateProject error:', error);
         return { success: false, error: error.message };
       }
+
+      await syncProjectTechnologies(supabase, id, projectData.technologies_used);
+
       revalidatePath('/');
       revalidatePath('/admin/dashboard');
       return { success: true };
@@ -611,6 +663,11 @@ export async function updateProject(id: string, projectData: any) {
     // Offline Mock Update Sandbox
     const projIndex = MOCK_PROJECTS.findIndex((p) => p.id === id);
     if (projIndex !== -1) {
+      const techList = (projectData.technologies_used || '')
+        .split(',')
+        .map((t: string) => t.trim())
+        .filter((t: string) => t.length > 0);
+
       MOCK_PROJECTS[projIndex] = {
         ...MOCK_PROJECTS[projIndex],
         title: projectData.title,
@@ -629,6 +686,9 @@ export async function updateProject(id: string, projectData: any) {
         status: projectData.status,
         featured: projectData.featured,
         pinned: projectData.pinned,
+        project_technologies: techList.length > 0
+          ? techList.map((t: string) => ({ technologies: { name: t } }))
+          : MOCK_PROJECTS[projIndex].project_technologies,
       };
     }
     revalidatePath('/');

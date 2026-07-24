@@ -39,6 +39,14 @@ create policy "Allow public read access to categories" on public.categories
 create policy "Allow authenticated admin full access to categories" on public.categories
     for all using (auth.role() = 'authenticated');
 
+-- Seed Default Categories
+insert into public.categories (name, slug) values
+    ('Web Applications', 'web-applications'),
+    ('Mobile Applications', 'mobile-applications'),
+    ('Games', 'games'),
+    ('AI / Data', 'ai-data')
+on conflict (name) do nothing;
+
 -- 3. Projects Table
 create table if not exists public.projects (
     id uuid default uuid_generate_v4() primary key,

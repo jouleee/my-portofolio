@@ -30,6 +30,7 @@ const projectFormSchema = z.object({
   featured: z.boolean(),
   pinned: z.boolean(),
   sort_order: z.string(),
+  technologies_used: z.string().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -72,6 +73,12 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
       featured: project?.featured || false,
       pinned: project?.pinned || false,
       sort_order: project?.sort_order?.toString() || '0',
+      technologies_used: project?.project_technologies
+        ? project.project_technologies
+            .map((pt: any) => pt.technologies?.name || pt.name)
+            .filter((name: any): name is string => typeof name === 'string' && name.length > 0)
+            .join(', ')
+        : (project?.technologies_used || ''),
     },
   });
 
@@ -324,6 +331,18 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
                 className="w-full px-4 py-3 brutalist-border rounded-xl bg-background text-sm text-foreground focus:outline-none"
               />
             </div>
+          </div>
+
+          {/* Technologies Used */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-black uppercase text-foreground">Technologies Used (comma separated)</label>
+            <input
+              type="text"
+              {...register('technologies_used')}
+              placeholder="e.g. React, Next.js, Tailwind CSS, TypeScript"
+              className="w-full px-4 py-3 brutalist-border rounded-xl bg-background text-sm text-foreground focus:outline-none font-bold"
+            />
+            <span className="text-xs text-foreground/60 font-bold">Pisahkan dengan koma (contoh: React, Next.js, Tailwind CSS)</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

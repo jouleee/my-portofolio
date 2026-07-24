@@ -12,15 +12,14 @@ type ProjectsShowcaseProps = {
 export default function ProjectsShowcase({ projects }: ProjectsShowcaseProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // Extract unique category names from projects
-  const categories = [
-    'All',
-    ...Array.from(new Set(projects.map((p) => p.categories?.name || 'Development'))),
-  ];
+  // Category list including defaults and dynamic project categories
+  const defaultCategories = ['Web Applications', 'Mobile Applications', 'Games', 'AI / Data'];
+  const projectCatNames = projects.map((p) => p.categories?.name).filter(Boolean) as string[];
+  const categories = ['All', ...Array.from(new Set([...defaultCategories, ...projectCatNames]))];
 
   const filteredProjects = selectedCategory === 'All'
     ? projects
-    : projects.filter((p) => (p.categories?.name || 'Development') === selectedCategory);
+    : projects.filter((p) => p.categories?.name === selectedCategory);
 
   return (
     <section id="projects" className="py-20 md:py-32">
