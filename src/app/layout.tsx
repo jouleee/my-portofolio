@@ -20,11 +20,11 @@ const syne = Syne({
 
 export const metadata: Metadata = {
   title: 'Joel | Portofolio',
-  description: 'Personal portfolio of Joel',
+  description: 'Personal portfolio of Joel - Lead Software Engineer & Full Stack Architect',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   openGraph: {
     title: 'Joel | Portofolio',
-    description: 'Personal portfolio of Joel',
+    description: 'Personal portfolio of Joel - Lead Software Engineer & Full Stack Architect',
     type: 'website',
     locale: 'en_US',
   },
@@ -42,10 +42,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${syne.variable} h-full antialiased scroll-smooth`}
-      suppressHydrationWarning
+      className={`dark ${spaceGrotesk.variable} ${syne.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full font-sans antialiased bg-background text-foreground transition-colors duration-300">
+      <body className="min-h-full font-sans antialiased bg-background text-foreground selection:bg-sky-500/20 selection:text-sky-300">
         <ThemeProvider>
           <LenisProvider>
             <CustomCursor />

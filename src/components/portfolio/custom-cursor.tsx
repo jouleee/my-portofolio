@@ -2,159 +2,155 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import gsap from 'gsap';
 
 export default function CustomCursor() {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const [cursorText, setCursorText] = useState('');
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+
+  const [isTouchDevice, setIsTouchDevice] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isClicking, setIsClicking] = useState(false);
 
   useEffect(() => {
-    if (isAdmin) {
-      document.documentElement.classList.add('use-default-cursor');
-    } else {
-      document.documentElement.classList.remove('use-default-cursor');
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (isAdmin) return;
-    // Check if device is mobile or touch
-    const checkTouch = () => {
-      const touchDevice = window.matchMedia('(pointer: coarse)').matches;
-      setIsMobile(touchDevice);
+    // Only enable on desktop with fine mouse pointer
+    const checkPointer = () => {
+      const hasFinePointer = window.matchMedia('(pointer: fine) and (hover: hover)').matches;
+      setIsTouchDevice(!hasFinePointer);
     };
-    
-    checkTouch();
-    window.addEventListener('resize', checkTouch);
 
-    if (isMobile) return;
+    checkPointer();
+    window.addEventListener('resize', checkPointer);
 
-    const cursor = cursorRef.current;
-    if (!cursor) return;
+    if (isTouchDevice || isAdmin) return;
 
-    // Set initial position
-    gsap.set(cursor, { xPercent: -50, yPercent: -50, scale: 0 });
+    // Track coordinates directly on GPU without triggering React state re-renders
+    let targetX = -100;
+    let targetY = -100;
+    let currentX = -100;
+    let currentY = -100;
+    let rafId: number;
+    let hasMoved = false;
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isVisible) {
-        setIsVisible(true);
-        gsap.to(cursor, { scale: 1, duration: 0.15 });
+    // Smooth physics lerp loop running at native screen refresh rate (60/120/144fps)
+    const renderLoop = () => {
+      if (hasMoved) {
+        // High-responsiveness lerp factor: ultra-smooth, fluid follow with zero perceptible lag
+        const lerp = 0.22;
+        currentX += (targetX - currentX) * lerp;
+        currentY += (targetY - currentY) * lerp;
+
+        if (dotRef.current) {
+          // Direct 1:1 hardware-accelerated tracking for the center precision dot (zero delay)
+          dotRef.current.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) translate(-50%, -50%)`;
+        }
+
+        if (ringRef.current) {
+          // Smooth fluid follower ring
+          ringRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+        }
       }
-      gsap.to(cursor, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.1,
-        ease: 'power2.out',
-      });
+
+      rafId = requestAnimationFrame(renderLoop);
     };
 
-    const onMouseLeave = () => {
-      setIsVisible(false);
-      gsap.to(cursor, { scale: 0, duration: 0.15 });
-    };
+    rafId = requestAnimationFrame(renderLoop);
 
-    const onMouseEnter = () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      if (!hasMoved) {
+        currentX = e.clientX;
+        currentY = e.clientY;
+        hasMoved = true;
+      }
       setIsVisible(true);
-      gsap.to(cursor, { scale: 1, duration: 0.15 });
     };
 
+    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseUp = () => setIsClicking(false);
+
+    // Detect interactive elements (links, buttons, clickable elements, spotlight cards)
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const hoverTarget = target.closest('[data-cursor]');
-      
-      if (hoverTarget) {
-        const type = hoverTarget.getAttribute('data-cursor');
-        if (type === 'view') {
-          setCursorText('VIEW');
-          gsap.to(cursor, {
-            width: 80,
-            height: 80,
-            backgroundColor: '#ffe600',
-            borderColor: 'var(--border-color)',
-            borderWidth: 3,
-            borderRadius: '50%',
-            scale: 1,
-            color: '#0f0f0f',
-            duration: 0.2,
-          });
-        } else if (type === 'pink-view') {
-          setCursorText('GO!');
-          gsap.to(cursor, {
-            width: 80,
-            height: 80,
-            backgroundColor: '#ff007a',
-            borderColor: 'var(--border-color)',
-            borderWidth: 3,
-            borderRadius: '50%',
-            scale: 1,
-            color: '#ffffff',
-            duration: 0.2,
-          });
-        } else if (type === 'pointer' || type === 'link') {
-          setCursorText('');
-          gsap.to(cursor, {
-            width: 45,
-            height: 45,
-            backgroundColor: 'transparent',
-            borderColor: 'var(--border-color)',
-            borderWidth: 3,
-            scale: 1,
-            duration: 0.2,
-          });
-        }
+      if (
+        target?.closest?.(
+          'a, button, [role="button"], [data-cursor], input, textarea, select, .cursor-pointer, [tabindex="0"]'
+        )
+      ) {
+        setIsHovered(true);
       }
     };
 
     const handleMouseOut = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const hoverTarget = target.closest('[data-cursor]');
-      
-      if (hoverTarget) {
-        setCursorText('');
-        gsap.to(cursor, {
-          width: 20,
-          height: 20,
-          backgroundColor: '#ff007a',
-          borderColor: 'transparent',
-          borderWidth: 0,
-          scale: 1,
-          duration: 0.2,
-        });
+      if (
+        target?.closest?.(
+          'a, button, [role="button"], [data-cursor], input, textarea, select, .cursor-pointer, [tabindex="0"]'
+        )
+      ) {
+        setIsHovered(false);
       }
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseleave', onMouseLeave);
-    document.addEventListener('mouseenter', onMouseEnter);
-    document.addEventListener('mouseover', handleMouseOver);
-    document.addEventListener('mouseout', handleMouseOut);
+    const handleMouseLeave = () => setIsVisible(false);
+    const handleMouseEnter = () => setIsVisible(true);
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mousedown', handleMouseDown, { passive: true });
+    window.addEventListener('mouseup', handleMouseUp, { passive: true });
+    document.addEventListener('mouseover', handleMouseOver, { passive: true });
+    document.addEventListener('mouseout', handleMouseOut, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseenter', handleMouseEnter);
 
     return () => {
-      window.removeEventListener('resize', checkTouch);
-      window.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseleave', onMouseLeave);
-      document.removeEventListener('mouseenter', onMouseEnter);
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', checkPointer);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mouseover', handleMouseOver);
       document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseenter', handleMouseEnter);
     };
-  }, [isVisible, isMobile, isAdmin]);
+  }, [isTouchDevice, isAdmin]);
 
-  if (isMobile || isAdmin) return null;
+  if (isTouchDevice || isAdmin || !isVisible) return null;
 
   return (
-    <div
-      ref={cursorRef}
-      className={`fixed top-0 left-0 w-5 h-5 bg-brutalist-pink rounded-full pointer-events-none z-50 flex items-center justify-center text-[10px] font-bold text-white transition-opacity duration-150 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}
-      style={{ transform: 'translate(-50%, -50%)' }}
-    >
-      <span className="font-space-grotesk tracking-widest">{cursorText}</span>
+    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden select-none">
+      {/* Outer Follower Ring - Pure clean outline ring (No blur, no shadow, no background fill) */}
+      <div
+        ref={ringRef}
+        className={`fixed top-0 left-0 rounded-full pointer-events-none will-change-transform bg-transparent shadow-none ${
+          isClicking
+            ? 'w-8 h-8 border border-white/70'
+            : isHovered
+            ? 'w-12 h-12 border border-white/50'
+            : 'w-7 h-7 border border-white/30'
+        }`}
+        style={{
+          transition:
+            'width 0.22s cubic-bezier(0.16, 1, 0.3, 1), height 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s',
+        }}
+      />
+
+      {/* Center Precision Dot - Clean sharp white dot (No blur, no shadow) */}
+      <div
+        ref={dotRef}
+        className={`fixed top-0 left-0 rounded-full pointer-events-none will-change-transform bg-white shadow-none ${
+          isClicking ? 'w-1.5 h-1.5 opacity-70' : isHovered ? 'w-2 h-2 opacity-90' : 'w-1.5 h-1.5 opacity-80'
+        }`}
+        style={{
+          transition:
+            'width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s',
+        }}
+      />
     </div>
   );
 }

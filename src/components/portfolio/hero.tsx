@@ -1,34 +1,65 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import FloatingShapes from '@/components/portfolio/floating-shapes';
-import Magnetic from '@/components/portfolio/magnetic';
-import { ArrowDown } from 'lucide-react';
-import Marquee from '@/components/portfolio/marquee';
+import { ArrowDown, ArrowUpRight, Mail } from 'lucide-react';
+import { GithubIcon, LinkedinIcon } from '@/components/portfolio/icons';
+import avatar8b from '@/public/images/avatar_8b.webp';
 
-export default function Hero() {
-  const [greetingIndex, setGreetingIndex] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+type ProfileType = {
+  full_name: string;
+  title: string;
+  bio: string;
+  years_experience?: string;
+  avatar_url: string | null;
+  resume_url?: string;
+};
 
-  const greetings = [
-    'Halo!',
-    'Hola!',
-    'Bonjour!',
-    'Ciao!',
-    'Konnichiwa!',
-    'Olá!',
-    'Nǐ Hǎo!',
-    'Hi there!',
-  ];
+type HeroProps = {
+  profile?: ProfileType;
+};
+
+export default function Hero({ profile }: HeroProps) {
+  const containerRef = useRef<HTMLElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setGreetingIndex((prev) => (prev + 1) % greetings.length);
-    }, 2200);
-    return () => clearInterval(timer);
-  }, [greetings.length]);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Parallax scroll setup
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 24,
+    restDelta: 0.001,
+  });
+
+  // Kinetic typography watermark in background
+  const xWatermark = useTransform(smoothProgress, [0, 1], ['0%', isMobile ? '-12%' : '-22%']);
+  
+  // Moderate vertical parallax for avatar
+  const yPhoto = useTransform(smoothProgress, [0, 1], [0, isMobile ? 35 : 75]);
+  const rotatePhoto = useTransform(smoothProgress, [0, 1], [0, isMobile ? 0 : -2]);
+  const scalePhoto = useTransform(smoothProgress, [0, 1], [1, 0.96]);
+
+  // Floating Status badge parallax offset
+  const yBadgeStatus = useTransform(smoothProgress, [0, 1], [0, isMobile ? -25 : -65]);
+
+  // Text content drift
+  const yContent = useTransform(smoothProgress, [0, 1], [0, isMobile ? 15 : 35]);
+  const opacityFade = useTransform(smoothProgress, [0, 0.95], [1, 0.2]);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -37,180 +68,194 @@ export default function Hero() {
     }
   };
 
+  const name = profile?.full_name || 'Joel';
+  const role = profile?.title || 'Lead Software Engineer & Full Stack Architect';
+  const bio = profile?.bio || 'Building premium web experiences at the intersection of high-fidelity interaction, elegant visual design, and clean scalable code. Award-winning aesthetics meets peak performance.';
+  const yearsExp = profile?.years_experience || '6+';
+
   return (
-    <section 
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        setMousePosition({
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-        });
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="relative min-h-[90vh] flex flex-col justify-center items-center overflow-hidden py-12 md:py-24"
+    <section
+      id="intro"
+      ref={containerRef}
+      className="relative min-h-[94svh] flex flex-col justify-center overflow-x-clip px-6 sm:px-10 lg:px-16 pt-10 pb-16 md:py-20 lg:py-24"
     >
-      {/* Dynamic Background Patterns */}
-      <div className="absolute inset-0 -z-20 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] dark:opacity-30" />
-      
-      {/* Mouse Spotlight Glow */}
-      <div
-        className="absolute inset-0 -z-15 pointer-events-none transition-opacity duration-500"
-        style={{
-          opacity: isHovered ? 1 : 0,
-          background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, var(--spotlight-glow), transparent 80%)`,
-        }}
-      />
       <FloatingShapes />
 
-      {/* Hero Body Content */}
-      <div className="max-w-5xl mx-auto px-6 text-center flex-1 flex flex-col justify-center items-center">
-        {/* Playful Floating Stagger Greeting */}
-        <div className="mb-4 h-12 flex items-center justify-center font-space-grotesk text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-foreground select-none overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={greetings[greetingIndex]}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -14, transition: { duration: 0.18, ease: 'easeOut' } }}
-              className="flex items-center justify-center gap-[2px]"
-            >
-              {Array.from(greetings[greetingIndex]).map((char, index) => (
-                <motion.span
-                  key={`${greetings[greetingIndex]}-${index}`}
-                  initial={{ opacity: 0, y: 14, rotate: index % 2 === 0 ? -8 : 8, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
-                  transition={{
-                    duration: 0.28,
-                    delay: index * 0.025,
-                    type: 'spring',
-                    stiffness: 320,
-                    damping: 18,
-                  }}
-                  whileHover={{
-                    y: -10,
-                    scale: 1.25,
-                    rotate: index % 2 === 0 ? 10 : -10,
-                    transition: { type: 'spring', stiffness: 400, damping: 8 },
-                  }}
-                  className="inline-block cursor-pointer"
-                  data-cursor="pointer"
-                >
-                  {char === ' ' ? '\u00A0' : char}
-                </motion.span>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Dynamic Big Typography Header */}
-        <motion.h1
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
-          className="text-6xl sm:text-8xl md:text-9xl font-black uppercase tracking-tighter mb-6 font-syne leading-none select-none"
-        >
-          {Array.from("I'm ").map((char, index) => (
-            <motion.span
-              key={`im-${index}`}
-              className="inline-block"
-              data-cursor="pointer"
-              whileHover={{ 
-                y: -12, 
-                scale: 1.1,
-                rotate: index % 2 === 0 ? 8 : -8,
-                transition: { type: 'spring', stiffness: 300, damping: 8 } 
-              }}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </motion.span>
-          ))}
-          <span className="relative inline-block text-brutalist-blue dark:text-brutalist-yellow px-1">
-            {Array.from("Joel").map((char, index) => (
-              <motion.span
-                key={`joel-${index}`}
-                className="inline-block"
-                data-cursor="pointer"
-                whileHover={{ 
-                  y: -15, 
-                  scale: 1.15,
-                  rotate: index % 2 === 0 ? -10 : 10,
-                  transition: { type: 'spring', stiffness: 400, damping: 8 } 
-                }}
-              >
-                {char}
-              </motion.span>
-            ))}
-            <span className="absolute left-0 right-0 -bottom-2 h-4 overflow-hidden pointer-events-none">
-              <svg
-                viewBox="0 0 200 20"
-                preserveAspectRatio="none"
-                className="w-[200%] h-full text-brutalist-pink fill-none stroke-current stroke-[6] overflow-visible"
-              >
-                <motion.path
-                  d="M 0 10 C 25 0, 25 20, 50 10 C 75 0, 75 20, 100 10 C 125 0, 125 20, 150 10 C 175 0, 175 20, 200 10"
-                  animate={{ x: [0, '-50%'] }}
-                  transition={{
-                    ease: 'linear',
-                    duration: 3,
-                    repeat: Infinity,
-                  }}
-                />
-              </svg>
-            </span>
-          </span>
-        </motion.h1>
-
-        {/* Short introduction paragraph */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="text-lg md:text-2xl font-space-grotesk font-bold max-w-2xl text-center mb-10 text-foreground/95"
-        >
-          I'm a Software Engineer specializing in full-stack web development, enterprise applications, and scalable business systems.
-        </motion.p>
-
-        {/* CTA Buttons with Magnetic effects */}
+      {/* Background Kinetic Typography Parallax Watermark */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/2 -translate-y-1/2 inset-x-0 overflow-hidden pointer-events-none -z-10 select-none opacity-[0.035] dark:opacity-[0.045]"
+      >
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-          className="flex flex-wrap justify-center gap-6 mb-16"
+          style={{ x: xWatermark }}
+          className="whitespace-nowrap font-black font-syne text-[14vw] leading-none uppercase tracking-tighter"
         >
-          <Magnetic>
-            <button
-              onClick={() => scrollToSection('projects')}
-              className="px-8 py-4 rounded-2xl bg-brutalist-yellow text-brutalist-dark font-syne font-black uppercase brutalist-border shadow-[5px_5px_0px_0px_#0f0f0f] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[7px_7px_0px_0px_#0f0f0f] transition-all cursor-pointer"
-              data-cursor="pointer"
-            >
-              View Projects
-            </button>
-          </Magnetic>
-
-          <Magnetic>
-            <button
-              onClick={() => scrollToSection('contact')}
-              className="px-8 py-4 rounded-2xl bg-background text-foreground font-syne font-black uppercase brutalist-border shadow-[5px_5px_0px_0px_var(--border-color)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[7px_7px_0px_0px_var(--border-color)] transition-all cursor-pointer"
-              data-cursor="pointer"
-            >
-              Contact Me
-            </button>
-          </Magnetic>
+          JOEL • ARCHITECT • DEVELOPER • CREATIVE
         </motion.div>
-
-        {/* Smooth Scroll Indicator */}
-        <motion.button
-          onClick={() => scrollToSection('about')}
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-10 h-10 rounded-full brutalist-border-thin flex items-center justify-center bg-background text-foreground hover:bg-brutalist-pink hover:text-white transition-colors cursor-pointer"
-          aria-label="Scroll to About"
-          data-cursor="pointer"
-        >
-          <ArrowDown className="w-5 h-5" />
-        </motion.button>
       </div>
+
+      <div className="w-full max-w-7xl mx-auto">
+        <motion.div
+          style={{ opacity: opacityFade }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 xl:gap-16 items-center"
+        >
+          {/* LEFT COLUMN: Clean 8-Bit Avatar Frame */}
+          <div className="lg:col-span-5 flex justify-center order-1 lg:order-1">
+            <motion.div
+              style={{
+                y: yPhoto,
+                rotateZ: rotatePhoto,
+                scale: scalePhoto,
+              }}
+              className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[340px]"
+            >
+              {/* Silky Smooth Ambient Radial Diffusion behind the avatar card */}
+              <div
+                aria-hidden="true"
+                className="absolute -inset-8 sm:-inset-12 bg-gradient-to-tr from-sky-500/14 via-indigo-500/10 to-cyan-400/10 rounded-full blur-[90px] sm:blur-[130px] -z-10 animate-soft-breathe pointer-events-none select-none"
+              />
+
+              {/* Clean Modern Frosted Glass Frame for Avatar with Smooth Rim Glow */}
+              <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden bg-gradient-to-b from-zinc-800/40 via-zinc-900/60 to-zinc-950/85 border border-white/[0.1] shadow-[0_20px_50px_rgba(0,0,0,0.45),0_0_35px_rgba(56,189,248,0.06)] backdrop-blur-xl group select-none">
+                {/* Subtle Retro Micro-Grid Background */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none opacity-40"
+                />
+
+                {/* The 8-Bit Avatar Image - Razor Sharp & Pixel Perfect */}
+                <div className="relative w-full h-full p-4 flex items-center justify-center">
+                  <Image
+                    src={avatar8b}
+                    alt={`${name} Avatar`}
+                    fill
+                    priority
+                    sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 340px"
+                    className="object-contain p-4 z-10 select-none pointer-events-none transition-transform duration-500 group-hover:scale-105 [image-rendering:pixelated]"
+                    draggable={false}
+                  />
+                </div>
+
+                {/* Subtle Bottom Vignette Gradient */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/70 via-background/20 to-transparent pointer-events-none z-15"
+                />
+              </div>
+
+              {/* Parallax Floating Badge: Availability Status (Bottom-Left) */}
+              <motion.div
+                style={{ y: yBadgeStatus }}
+                className="absolute -bottom-4 -left-3 sm:-left-5 z-20 px-3.5 py-2 rounded-2xl bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.35)] flex items-center gap-2.5 select-none"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-beacon absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                </span>
+                <div>
+                  <span className="text-[10px] block font-space-grotesk text-foreground/50 uppercase tracking-wider font-semibold">Status</span>
+                  <span className="text-xs font-space-grotesk font-bold text-foreground tracking-wide">
+                    Available for work
+                  </span>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* RIGHT COLUMN: Personal Introduction (Clean, Minimal, Direct) */}
+          <motion.div
+            style={{ y: yContent }}
+            className="lg:col-span-7 flex flex-col justify-center text-left order-2 lg:order-2"
+          >
+            {/* Direct Personal Heading */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black font-syne tracking-tight text-foreground leading-[1.1] mb-3 sm:mb-4">
+              Hi, I'm <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-teal-300 bg-clip-text text-transparent">{name}.</span>
+            </h1>
+
+            {/* Title / Role */}
+            <p className="text-lg sm:text-xl md:text-2xl font-space-grotesk font-bold text-foreground/90 mb-4 sm:mb-5">
+              {role}
+            </p>
+
+            {/* Introduction Paragraph */}
+            <p className="text-sm sm:text-base md:text-lg font-space-grotesk text-foreground/75 leading-relaxed max-w-2xl mb-8">
+              {bio}
+            </p>
+
+            {/* SINGLE KPI STAT CARD: Exactly 1 stat with 1 single line of text */}
+            <div className="inline-flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-lg max-w-fit mb-8 hover:border-sky-400/30 transition-colors">
+              <span className="text-3xl sm:text-4xl font-black font-syne text-sky-400 tracking-tight shrink-0">
+                {yearsExp}
+              </span>
+              <div className="h-8 w-px bg-white/[0.1] shrink-0" />
+              <span className="text-sm sm:text-base font-bold font-space-grotesk text-foreground tracking-wide">
+                Years Working Experience
+              </span>
+            </div>
+
+            {/* Primary Action Buttons & Social Links */}
+            <div className="flex flex-wrap items-center gap-3.5">
+              <button
+                onClick={() => scrollToSection('projects')}
+                className="px-7 py-3.5 rounded-full bg-foreground text-background font-space-grotesk font-bold text-xs sm:text-sm tracking-wide hover:opacity-90 transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-[0_6px_25px_rgba(255,255,255,0.12)] hover:shadow-[0_10px_35px_rgba(255,255,255,0.2)] hover:-translate-y-0.5"
+              >
+                <span>View Selected Works</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="px-7 py-3.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-foreground border border-white/[0.1] font-space-grotesk font-semibold text-xs sm:text-sm tracking-wide transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+              >
+                Get In Touch
+              </button>
+
+              {/* Direct Social Links */}
+              <div className="flex items-center gap-2 ml-1">
+                <a
+                  href="https://github.com/jouleee"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-foreground/80 hover:text-foreground transition-all hover:-translate-y-0.5"
+                  aria-label="GitHub profile"
+                >
+                  <GithubIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://linkedin.com/in/juliandwi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-foreground/80 hover:text-foreground transition-all hover:-translate-y-0.5"
+                  aria-label="LinkedIn profile"
+                >
+                  <LinkedinIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href="mailto:julian.dsatrio@gmail.com"
+                  className="p-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-foreground/80 hover:text-foreground transition-all hover:-translate-y-0.5"
+                  aria-label="Send email"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Subtle Scroll Cue Indicator */}
+      <motion.button
+        onClick={() => scrollToSection('skills')}
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+        className="mt-12 sm:mt-16 flex flex-col items-center gap-2 text-foreground/40 hover:text-foreground/80 transition-colors cursor-pointer group mx-auto"
+        aria-label="Scroll to Skills & Stack"
+      >
+        <span className="text-[10px] uppercase font-space-grotesk tracking-widest font-semibold group-hover:tracking-wider transition-all">
+          Scroll Down
+        </span>
+        <ArrowDown className="w-3.5 h-3.5" />
+      </motion.button>
     </section>
   );
 }

@@ -24,13 +24,22 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="relative min-h-screen flex flex-col">
+    <div className="relative min-h-screen flex flex-col overflow-x-clip bg-background text-foreground transition-colors duration-300">
       <Header />
-      <main className="flex-1">
-        <Hero />
+      <main className="flex-1 w-full">
+        {/* Direct Personal Introduction with Focal Photo and Multi-Layer Parallax */}
+        <Hero profile={profile} />
+
+        {/* Technical Stack, Architecture & Engineering Principles - Directly following Hero */}
         <About profile={profile} skills={skills} />
+
+        {/* Work Experience with Scroll Progress Timeline */}
         <Experience experiences={experiences} />
+
+        {/* Curated Works & Projects */}
         <ProjectsShowcase projects={projects} />
+
+        {/* Contact & Inquiry */}
         <ContactForm />
       </main>
       <Footer />

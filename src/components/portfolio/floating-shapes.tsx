@@ -1,117 +1,40 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 export default function FloatingShapes() {
+  const { scrollY } = useScroll();
+
+  // Subtle differential parallax shifts for depth without mobile lag
+  const yOrb1 = useTransform(scrollY, [0, 1000], [0, -120]);
+  const yOrb2 = useTransform(scrollY, [0, 1000], [0, 80]);
+  const yOrb3 = useTransform(scrollY, [0, 1000], [0, -60]);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-60 dark:opacity-30">
-      {/* Background Soft Blobs */}
-      <div 
-        className="absolute w-72 h-72 rounded-full bg-brutalist-pink blur-[80px] top-[10%] left-[-5%] animate-pulse" 
-        style={{ animationDuration: '8s' }} 
-      />
-      <div 
-        className="absolute w-80 h-80 rounded-full bg-brutalist-blue blur-[100px] bottom-[20%] right-[-10%] animate-pulse" 
-        style={{ animationDuration: '12s' }} 
-      />
-      <div 
-        className="absolute w-64 h-64 rounded-full bg-brutalist-yellow blur-[90px] top-[40%] right-[15%] animate-pulse" 
-        style={{ animationDuration: '10s' }} 
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none"
+    >
+      {/* Subtle modern dark grid pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_25%,#000_70%,transparent_100%)] opacity-70" />
+
+      {/* Top primary ambient light bloom */}
+      <motion.div
+        style={{ y: yOrb1 }}
+        className="absolute top-[-8%] left-[15%] sm:left-[25%] w-[320px] sm:w-[500px] h-[320px] sm:h-[500px] rounded-full bg-gradient-to-br from-sky-500/10 via-indigo-500/10 to-transparent blur-[90px] sm:blur-[130px] animate-pulse-glow"
       />
 
-      {/* Playful Vector Shapes - Floating, Rotating, and Draggable */}
-      <motion.div 
-        drag
-        dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-        dragElastic={0.3}
-        whileDrag={{ scale: 1.15, cursor: 'grabbing' }}
-        whileHover={{ scale: 1.1, rotate: 45 }}
-        animate={{
-          y: [0, -25, 15, -10, 0],
-          x: [0, 20, -15, 10, 0],
-          rotate: [12, 192, 372],
-        }}
-        transition={{
-          duration: 16,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className="absolute top-[25%] left-[10%] hidden md:block pointer-events-auto cursor-grab"
-      >
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="stroke-brutalist-dark dark:stroke-brutalist-light stroke-[3]">
-          <rect x="5" y="5" width="30" height="30" rx="4" fill="#ffe600" />
-        </svg>
-      </motion.div>
+      {/* Secondary ambient glow */}
+      <motion.div
+        style={{ y: yOrb2 }}
+        className="absolute top-[40%] right-[-5%] sm:right-[10%] w-[260px] sm:w-[420px] h-[260px] sm:h-[420px] rounded-full bg-gradient-to-tr from-cyan-500/8 via-blue-500/6 to-transparent blur-[80px] sm:blur-[120px] animate-ambient-float"
+      />
 
-      <motion.div 
-        drag
-        dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-        dragElastic={0.3}
-        whileDrag={{ scale: 1.15, cursor: 'grabbing' }}
-        whileHover={{ scale: 1.1, rotate: -45 }}
-        animate={{
-          y: [0, 30, -15, 10, 0],
-          x: [0, -25, 20, -10, 0],
-          rotate: [-12, -192, -372],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className="absolute top-[65%] left-[8%] hidden md:block pointer-events-auto cursor-grab"
-      >
-        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" className="stroke-brutalist-dark dark:stroke-brutalist-light stroke-[3]">
-          <path d="M25 5 L45 40 L5 40 Z" fill="#0057ff" />
-        </svg>
-      </motion.div>
-
-      <motion.div 
-        drag
-        dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-        dragElastic={0.3}
-        whileDrag={{ scale: 1.15, cursor: 'grabbing' }}
-        whileHover={{ scale: 1.1, rotate: 90 }}
-        animate={{
-          y: [0, -15, 25, -20, 0],
-          x: [0, -20, 15, -15, 0],
-          rotate: [45, 225, 405],
-        }}
-        transition={{
-          duration: 14,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className="absolute top-[15%] right-[8%] hidden md:block pointer-events-auto cursor-grab"
-      >
-        <svg width="45" height="45" viewBox="0 0 45 45" fill="none" className="stroke-brutalist-dark dark:stroke-brutalist-light stroke-[3]">
-          <circle cx="22.5" cy="22.5" r="18" fill="#ff007a" />
-        </svg>
-      </motion.div>
-
-      <motion.div 
-        drag
-        dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-        dragElastic={0.3}
-        whileDrag={{ scale: 1.15, cursor: 'grabbing' }}
-        whileHover={{ scale: 1.1, rotate: 60 }}
-        animate={{
-          y: [0, 20, -20, 15, 0],
-          x: [0, 25, -20, 10, 0],
-          rotate: [30, 210, 390],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className="absolute bottom-[25%] right-[12%] hidden md:block pointer-events-auto cursor-grab"
-      >
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="stroke-brutalist-dark dark:stroke-brutalist-light stroke-[3]">
-          <rect x="8" y="8" width="24" height="24" rx="2" fill="#00e575" />
-        </svg>
-      </motion.div>
+      {/* Deep bottom subtle accent */}
+      <motion.div
+        style={{ y: yOrb3 }}
+        className="absolute bottom-[10%] left-[-5%] sm:left-[5%] w-[280px] sm:w-[460px] h-[280px] sm:h-[460px] rounded-full bg-gradient-to-tr from-indigo-500/8 via-purple-500/5 to-transparent blur-[80px] sm:blur-[120px]"
+      />
     </div>
   );
 }
-

@@ -1,130 +1,154 @@
 'use client';
 
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import TextReveal from '@/components/portfolio/text-reveal';
-import ScrollReveal from '@/components/portfolio/scroll-reveal';
-import avatarTransparent from '@/public/images/avatar_transparent.webp';
+import { useRef } from 'react';
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import SpotlightCard from '@/components/portfolio/spotlight-card';
+import {
+  NextjsIcon,
+  ReactIcon,
+  TypeScriptIcon,
+  NodejsIcon,
+  GoIcon,
+  PythonIcon,
+  FlutterIcon,
+  PostgresIcon,
+  DockerIcon,
+  GitIcon,
+} from '@/components/portfolio/tech-icons';
 
-type Skill = {
-  id: string;
+type TechItem = {
   name: string;
-  level: number;
-  category: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
-type AboutProps = {
-  profile: {
-    full_name: string;
-    title: string;
-    bio: string;
-    avatar_url: string | null;
-  };
-  skills: Skill[];
-};
+// Exactly 10 Curated Core Tech Stacks (Zero Duplicates)
+// Left Column: 5 items
+const LEFT_STACK: TechItem[] = [
+  { name: 'Next.js', icon: NextjsIcon },
+  { name: 'TypeScript', icon: TypeScriptIcon },
+  { name: 'Go (Golang)', icon: GoIcon },
+  { name: 'Flutter', icon: FlutterIcon },
+  { name: 'Docker', icon: DockerIcon },
+];
 
-export default function About({ profile, skills }: AboutProps) {
-  // Extract unique categories
-  const categories = Array.from(new Set(skills.map((s) => s.category)));
+// Right Column: 5 items
+const RIGHT_STACK: TechItem[] = [
+  { name: 'React.js', icon: ReactIcon },
+  { name: 'Node.js', icon: NodejsIcon },
+  { name: 'Python', icon: PythonIcon },
+  { name: 'PostgreSQL', icon: PostgresIcon },
+  { name: 'Git', icon: GitIcon },
+];
 
-  // Accents for skill fill bars based on category
-  const barColors: { [key: string]: string } = {
-    Frontend: 'bg-brutalist-pink',
-    Backend: 'bg-brutalist-blue',
-    Design: 'bg-brutalist-yellow',
-    Other: 'bg-brutalist-green',
-  };
+function TechCardItem({ item }: { item: TechItem }) {
+  const Icon = item.icon;
+  return (
+    <SpotlightCard
+      enableTilt={true}
+      spotlightColor="rgba(56, 189, 248, 0.12)"
+      className="w-full p-3.5 sm:p-4.5 md:p-5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] hover:border-white/20 backdrop-blur-xl shadow-[0_12px_28px_rgba(0,0,0,0.45)] hover:shadow-[0_18px_36px_rgba(56,189,248,0.16)] transition-all duration-300 group select-none flex flex-col items-center justify-center text-center cursor-pointer transform-gpu"
+    >
+      {/* Prominent Centered Icon Plaque */}
+      <div className="w-11 h-11 sm:w-13 sm:h-13 md:w-15 md:h-15 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-white/[0.08] group-hover:border-white/20 transition-all duration-300 shadow-inner">
+        <Icon className="w-6 h-6 sm:w-7 sm:h-7 md:w-7.5 md:h-7.5 text-foreground/90 group-hover:text-foreground transition-colors" />
+      </div>
+
+      {/* Bold Tech Stack Name */}
+      <span className="font-syne font-bold text-sm sm:text-base text-foreground tracking-tight group-hover:text-sky-300 transition-colors mt-2 sm:mt-2.5 text-center">
+        {item.name}
+      </span>
+    </SpotlightCard>
+  );
+}
+
+export default function About(_props: any) {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Scroll scrub tracking across the tall scroll track
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  });
+
+  // Clamp scroll progress to prevent edge jumps during high-velocity scrolls
+  const clampedProgress = useTransform(scrollYProgress, [0, 1], [0, 1], { clamp: true });
+
+  // Spring physics tuned for fast scroll protection: responsive, calm, zero overshoot
+  const smoothProgress = useSpring(clampedProgress, {
+    stiffness: 80,
+    damping: 24,
+    restDelta: 0.001,
+  });
+
+  // Multi-axis scroll transformations with entry (0-6%) & exit (94-100%) resting buffers
+  // Cards settle into position before unpinning, so fast scrolling never snaps or cuts off
+  const yLeft = useTransform(smoothProgress, [0.06, 0.94], [25, -145], { clamp: true });
+  const yRight = useTransform(smoothProgress, [0.06, 0.94], [-135, 35], { clamp: true });
+
+  // Subtle lateral drift
+  const xLeft = useTransform(smoothProgress, [0.06, 0.5, 0.94], [-12, 5, -8], { clamp: true });
+  const xRight = useTransform(smoothProgress, [0.06, 0.5, 0.94], [12, -5, 8], { clamp: true });
+
+  // Subtle zoom/scale through focal zone
+  const scaleLeft = useTransform(smoothProgress, [0.06, 0.5, 0.94], [0.97, 1.025, 0.97], { clamp: true });
+  const scaleRight = useTransform(smoothProgress, [0.06, 0.5, 0.94], [0.97, 1.025, 0.97], { clamp: true });
+
+  // Subtle organic floating tilt
+  const rotateLeft = useTransform(smoothProgress, [0.06, 0.94], [-0.6, 0.5], { clamp: true });
+  const rotateRight = useTransform(smoothProgress, [0.06, 0.94], [0.6, -0.5], { clamp: true });
 
   return (
-    <section id="about" className="py-20 md:py-32 relative">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Section Title */}
-        <ScrollReveal yOffset={30}>
-          <div className="mb-16">
-            <span className="text-sm font-black uppercase tracking-widest text-brutalist-pink font-space-grotesk block mb-2">
-              Who am I
-            </span>
-            <h2 className="text-4xl md:text-6xl font-black uppercase font-syne tracking-tight">
-              About Me
-            </h2>
-          </div>
-        </ScrollReveal>
+    <section
+      id="skills"
+      ref={sectionRef}
+      className="relative"
+      // Ample scroll track for controlled, calm scroll scrubbing
+      style={{ height: '240vh' }}
+    >
+      {/* Sticky Stage Viewport: Vertically centered in screen with liquid-nav clearance */}
+      <div className="sticky top-0 h-screen w-full flex flex-col justify-center pt-16 sm:pt-18 pb-4 sm:pb-6 px-4 sm:px-6 md:px-8 overflow-hidden bg-background">
+        {/* Section Header (Above Cards - Title & Body Only, Never colliding with navbar) */}
+        <div className="text-center mb-5 sm:mb-7 max-w-xl mx-auto px-4 z-20 shrink-0">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-syne tracking-tight text-foreground">
+            Technical Stack
+          </h2>
+          <p className="mt-2 text-xs sm:text-sm md:text-base font-space-grotesk text-foreground/60 leading-relaxed">
+            Core technologies, distributed systems, and architectural foundations.
+          </p>
+        </div>
 
-        {/* Main Grid: Avatar & Biography */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
-          {/* Avatar Card (Left) */}
-          <div className="lg:col-span-5 flex justify-center">
-            <ScrollReveal yOffset={45} delay={0.15} className="w-full max-w-sm">
-              <motion.div
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.8}
-                dragTransition={{ bounceStiffness: 250, bounceDamping: 12 }}
-                whileDrag={{ scale: 1.03, rotate: 2, zIndex: 30 }}
-                whileHover={{ rotate: 1, scale: 1.01 }}
-                className="relative w-full bg-brutalist-yellow rounded-2xl brutalist-border p-6 brutalist-shadow-black transition-[background-color,box-shadow] duration-200 cursor-grab active:cursor-grabbing pointer-events-auto"
-              >
-                {/* Avatar Portrait with Brutalist Grid Background */}
-                <div className="relative aspect-square w-full brutalist-border rounded-xl bg-background overflow-hidden flex items-center justify-center select-none pointer-events-none">
-                  <div className="absolute inset-0 opacity-15">
-                    <svg width="100%" height="100%">
-                      <defs>
-                        <pattern id="grid-about" width="20" height="20" patternUnits="userSpaceOnUse">
-                          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.8" />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill="url(#grid-about)" />
-                    </svg>
-                  </div>
-                  
-                  <Image
-                    src={profile.avatar_url || avatarTransparent}
-                    alt={profile.full_name}
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 100vw, 384px"
-                    className="object-cover z-10 select-none pointer-events-none"
-                    draggable={false}
-                  />
-                </div>
+        {/* 2-Column Asymmetric Ticker Stage with Top & Bottom Fade Masks (Proportionally sized, never cut off) */}
+        <div className="relative w-full max-w-3xl sm:max-w-4xl mx-auto h-[440px] sm:h-[480px] md:h-[510px] overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_14%,black_86%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_14%,black_86%,transparent_100%)] px-3 sm:px-6 z-10">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-start h-full">
+            {/* Left Column (5 Unique Stacks, Moves UP) */}
+            <motion.div
+              style={{
+                y: yLeft,
+                x: xLeft,
+                scale: scaleLeft,
+                rotateZ: rotateLeft,
+              }}
+              className="flex flex-col gap-3.5 sm:gap-4.5 will-change-transform transform-gpu"
+            >
+              {LEFT_STACK.map((item) => (
+                <TechCardItem key={`left-${item.name}`} item={item} />
+              ))}
+            </motion.div>
 
-                {/* Card Title Stamp */}
-                <div className="mt-5 text-center font-space-grotesk text-brutalist-dark">
-                  <h3 className="text-xl font-black uppercase">{profile.full_name}</h3>
-                  <p className="text-xs font-bold text-brutalist-dark/80 mt-1 uppercase">{profile.title}</p>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          </div>
-
-          {/* Biography Text (Right) */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
-            <ScrollReveal yOffset={45} delay={0.25}>
-              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-6 font-syne select-none">
-                {"Building Software That Solves Real Business Problems".split(" ").map((word, wordIdx) => (
-                  <span key={wordIdx} className="inline-block whitespace-nowrap mr-2.5">
-                    {Array.from(word).map((char, charIdx) => {
-                      const globalIdx = wordIdx * 8 + charIdx;
-                      return (
-                        <span
-                          key={charIdx}
-                          className="animate-text-wave"
-                          style={{
-                            animationDelay: `${globalIdx * 0.05}s`
-                          }}
-                        >
-                          {char}
-                        </span>
-                      );
-                    })}
-                  </span>
-                ))}
-              </h3>
-              <TextReveal
-                text={profile.bio}
-                className="text-lg md:text-xl font-space-grotesk font-bold text-foreground/85 leading-relaxed"
-              />
-            </ScrollReveal>
+            {/* Right Column (5 Unique Stacks, Moves DOWN with Asymmetric Stagger) */}
+            <motion.div
+              style={{
+                y: yRight,
+                x: xRight,
+                scale: scaleRight,
+                rotateZ: rotateRight,
+              }}
+              className="flex flex-col gap-3.5 sm:gap-4.5 md:pt-10 lg:pt-14 will-change-transform transform-gpu"
+            >
+              {RIGHT_STACK.map((item) => (
+                <TechCardItem key={`right-${item.name}`} item={item} />
+              ))}
+            </motion.div>
           </div>
         </div>
       </div>

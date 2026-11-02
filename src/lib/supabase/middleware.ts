@@ -6,9 +6,16 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key || url.includes('your-project-id')) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    key,
     {
       cookies: {
         getAll() {
@@ -37,15 +44,15 @@ export async function updateSession(request: NextRequest) {
   const isLoginPage = request.nextUrl.pathname === '/admin';
 
   if (isDashboard && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/admin';
-    return NextResponse.redirect(url);
+    const urlObj = request.nextUrl.clone();
+    urlObj.pathname = '/admin';
+    return NextResponse.redirect(urlObj);
   }
 
   if (isLoginPage && user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/admin/dashboard';
-    return NextResponse.redirect(url);
+    const urlObj = request.nextUrl.clone();
+    urlObj.pathname = '/admin/dashboard';
+    return NextResponse.redirect(urlObj);
   }
 
   return supabaseResponse;

@@ -1,199 +1,129 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { submitContactMessage } from '@/app/actions';
-import { toast } from 'sonner';
-import { Send, Loader2 } from 'lucide-react';
+import { Mail, ArrowUpRight } from 'lucide-react';
+import { InstagramIcon, LinkedinIcon } from '@/components/portfolio/icons';
 import ScrollReveal from '@/components/portfolio/scroll-reveal';
-
-const contactSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  subject: z.string().optional(),
-  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
-});
-
-type ContactFormValues = z.infer<typeof contactSchema>;
+import SpotlightCard from '@/components/portfolio/spotlight-card';
 
 export default function ContactForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ContactFormValues>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-    },
-  });
-
-  const onSubmit = async (data: ContactFormValues) => {
-    setIsSubmitting(true);
-    try {
-      const res = (await submitContactMessage(data)) as any;
-      if (res.success) {
-        toast.success('Message sent successfully! I will get back to you soon.');
-        reset();
-      } else {
-        toast.error(res.error || 'Failed to send message. Please try again.');
-      }
-    } catch {
-      toast.error('An error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <section id="contact" className="py-20 md:py-32 bg-muted/10 dark:bg-transparent">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="contact" className="py-24 sm:py-32 md:py-36 relative overflow-hidden">
+      {/* Background Kinetic Typography Parallax Watermark */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/3 inset-x-0 overflow-hidden pointer-events-none -z-10 select-none opacity-[0.03] dark:opacity-[0.04]"
+      >
+        <div className="whitespace-nowrap font-black font-syne text-[16vw] leading-none uppercase tracking-tighter">
+          CONNECT • COLLABORATE • PARTNERSHIP • INQUIRY
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section Header */}
-        <ScrollReveal yOffset={30}>
-          <div className="mb-16">
-            <span className="text-sm font-black uppercase tracking-widest text-brutalist-pink font-space-grotesk block mb-2">
-              Get in touch
-            </span>
-            <h2 className="text-4xl md:text-6xl font-black uppercase font-syne tracking-tight">
-              Contact Me
+        <ScrollReveal yOffset={25}>
+          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-12 sm:mb-14">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-syne tracking-tight text-foreground">
+              Let's Build Something Together
             </h2>
+            <p className="mt-3 text-sm sm:text-base font-space-grotesk text-foreground/60 leading-relaxed max-w-xl">
+              Have an inquiry or project in mind? Reach out directly through your preferred channel.
+            </p>
           </div>
         </ScrollReveal>
 
-        {/* Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Info Column */}
-          <ScrollReveal yOffset={45} delay={0.15} className="lg:col-span-5">
-            <div className="font-space-grotesk">
-              <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-6 font-syne">
-                Open For Opportunities
-              </h3>
-              <p className="text-md font-bold text-foreground/80 leading-relaxed mb-8">
-                Have an idea, a product to build, or an engineering challenge? Feel free to reach out. I'm always happy to connect.
-              </p>
-              <div className="flex flex-col gap-5 font-bold text-sm">
-                <div>
-                  <span className="text-xs uppercase tracking-widest text-brutalist-pink block mb-1">Email</span>
-                  <a href="mailto:julian.dsatrio@gmail.com" className="text-lg underline hover:text-brutalist-blue dark:hover:text-brutalist-yellow transition-colors duration-200">
-                    julian.dsatrio@gmail.com
-                  </a>
-                </div>
-                <div>
-                  <span className="text-xs uppercase tracking-widest text-brutalist-pink block mb-1">Location</span>
-                  <span className="text-lg">Bandung, Indonesia</span>
-                </div>
+        {/* Single Minimalist Direct Contact Card */}
+        <ScrollReveal yOffset={35} delay={0.1}>
+          <div className="w-full max-w-xl mx-auto">
+            <SpotlightCard
+              enableTilt={true}
+              spotlightColor="rgba(255, 255, 255, 0.08)"
+              className="p-6 sm:p-9 md:p-10 rounded-3xl bg-zinc-950/70 border border-white/[0.08] backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300"
+            >
+              {/* Card Title */}
+              <div className="mb-6 text-left">
+                <h3 className="text-2xl sm:text-3xl font-bold font-syne text-foreground tracking-tight">
+                  Direct Contact
+                </h3>
               </div>
-            </div>
-          </ScrollReveal>
 
-          {/* Form Column */}
-          <ScrollReveal yOffset={45} delay={0.25} className="lg:col-span-7 w-full">
-            <div className="bg-background brutalist-border rounded-2xl p-6 md:p-8 brutalist-shadow-black">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name Input */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="name" className="text-sm font-black uppercase tracking-wider font-space-grotesk">
-                      Name *
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      {...register('name')}
-                      placeholder="Your Name"
-                      className="w-full px-4 py-3 rounded-xl brutalist-border bg-background focus:bg-brutalist-yellow/10 focus:outline-none font-space-grotesk font-bold text-sm text-foreground"
-                    />
-                    {errors.name && (
-                      <span className="text-xs font-black uppercase tracking-wider text-brutalist-pink font-space-grotesk">
-                        {errors.name.message}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Email Input */}
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="email" className="text-sm font-black uppercase tracking-wider font-space-grotesk">
-                      Email *
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      {...register('email')}
-                      placeholder="your.email@domain.com"
-                      className="w-full px-4 py-3 rounded-xl brutalist-border bg-background focus:bg-brutalist-blue/10 focus:outline-none font-space-grotesk font-bold text-sm text-foreground"
-                    />
-                    {errors.email && (
-                      <span className="text-xs font-black uppercase tracking-wider text-brutalist-pink font-space-grotesk">
-                        {errors.email.message}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Subject Input */}
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="subject" className="text-sm font-black uppercase tracking-wider font-space-grotesk">
-                    Subject
-                  </label>
-                  <input
-                    id="subject"
-                    type="text"
-                    {...register('subject')}
-                    placeholder="Project Inquiry / Job Offer"
-                    className="w-full px-4 py-3 rounded-xl brutalist-border bg-background focus:bg-brutalist-orange/10 focus:outline-none font-space-grotesk font-bold text-sm text-foreground"
-                  />
-                </div>
-
-                {/* Message Input */}
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="message" className="text-sm font-black uppercase tracking-wider font-space-grotesk">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    rows={5}
-                    {...register('message')}
-                    placeholder="Describe your project, timeline, and goals..."
-                    className="w-full px-4 py-3 rounded-xl brutalist-border bg-background focus:bg-brutalist-pink/10 focus:outline-none font-space-grotesk font-bold text-sm text-foreground resize-none"
-                  />
-                  {errors.message && (
-                    <span className="text-xs font-black uppercase tracking-wider text-brutalist-pink font-space-grotesk">
-                      {errors.message.message}
-                    </span>
-                  )}
-                </div>
-
-                {/* Submit Action Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full px-6 py-4 bg-brutalist-yellow text-brutalist-dark brutalist-border font-syne font-black uppercase rounded-xl flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_#0f0f0f] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#0f0f0f] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all"
-                  data-cursor="pointer"
+              {/* Interactive Uniform Contact Channel Links */}
+              <div className="space-y-3">
+                {/* Email Channel */}
+                <a
+                  href="mailto:julian.dsatrio@gmail.com"
+                  className="group flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.16] transition-all duration-200"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      <span>Send Message</span>
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          </ScrollReveal>
-        </div>
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] text-foreground/80 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-white/[0.08] group-hover:text-foreground transition-all">
+                      <Mail className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-space-grotesk text-foreground/40 tracking-wider block font-semibold mb-0.5">
+                        Email Message
+                      </span>
+                      <span className="text-sm sm:text-base font-bold font-space-grotesk text-foreground/90 group-hover:text-foreground transition-colors">
+                        julian.dsatrio@gmail.com
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-foreground/40 group-hover:text-foreground group-hover:bg-white/[0.08] group-hover:border-white/20 transition-all shrink-0">
+                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                </a>
+
+                {/* Instagram Channel */}
+                <a
+                  href="https://instagram.com/juliandwii"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.16] transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] text-foreground/80 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-white/[0.08] group-hover:text-foreground transition-all">
+                      <InstagramIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-space-grotesk text-foreground/40 tracking-wider block font-semibold mb-0.5">
+                        Instagram DM
+                      </span>
+                      <span className="text-sm sm:text-base font-bold font-space-grotesk text-foreground/90 group-hover:text-foreground transition-colors">
+                        @juliandwii
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-foreground/40 group-hover:text-foreground group-hover:bg-white/[0.08] group-hover:border-white/20 transition-all shrink-0">
+                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                </a>
+
+                {/* LinkedIn Channel */}
+                <a
+                  href="https://linkedin.com/in/juliandwi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06] hover:border-white/[0.16] transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] text-foreground/80 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-white/[0.08] group-hover:text-foreground transition-all">
+                      <LinkedinIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-space-grotesk text-foreground/40 tracking-wider block font-semibold mb-0.5">
+                        LinkedIn Message
+                      </span>
+                      <span className="text-sm sm:text-base font-bold font-space-grotesk text-foreground/90 group-hover:text-foreground transition-colors">
+                        Julian Dwi Satrio
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/[0.02] text-foreground/40 group-hover:text-foreground group-hover:bg-white/[0.08] group-hover:border-white/20 transition-all shrink-0">
+                    <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
+                </a>
+              </div>
+            </SpotlightCard>
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );

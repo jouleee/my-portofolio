@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
     try {
       const res = await adminLogin({ email, password });
       if (res.success) {
-        toast.success(res.simulated ? 'Welcome, Joel! (Simulation Mode)' : 'Login successful!');
+        toast.success('Login successful! Welcome back.');
         setTimeout(() => {
           router.push('/admin/dashboard');
           router.refresh();

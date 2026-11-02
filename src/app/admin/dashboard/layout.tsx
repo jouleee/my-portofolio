@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { adminLogout } from '@/app/actions';
 import { toast } from 'sonner';
-import { LayoutDashboard, FolderKanban, LogOut, ArrowLeft, Menu, X, Sparkles, Briefcase } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, LogOut, ArrowLeft, Menu, X, Sparkles, Briefcase, User } from 'lucide-react';
 import { useState } from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +23,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = [
     { name: 'Overview', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Profile & Hero', path: '/admin/dashboard/profile', icon: User },
     { name: 'Projects', path: '/admin/dashboard/projects', icon: FolderKanban },
     { name: 'Experiences', path: '/admin/dashboard/experiences', icon: Briefcase },
   ];

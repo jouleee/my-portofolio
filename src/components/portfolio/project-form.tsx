@@ -102,49 +102,37 @@ export default function ProjectForm({ project, categories }: ProjectFormProps) {
     setValue('thumbnail_url', '');
   };
 
-
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
     try {
       const finalData = { ...data };
 
-      // Handle file upload
+      // Handle file upload directly to Supabase Storage bucket 'projects'
       if (thumbnailFile) {
-        const isDbConfigured = () => {
-          const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          return url && url !== 'https://your-project-id.supabase.co' && !url.includes('your-project-id');
-        };
+        const supabase = createClient();
+        
+        // Generate a safe, unique filename
+        const fileExt = thumbnailFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        const filePath = `thumbnails/${fileName}`;
 
-        if (isDbConfigured()) {
-          const supabase = createClient();
-          
-          // Generate a safe, unique filename
-          const fileExt = thumbnailFile.name.split('.').pop();
-          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-          const filePath = `thumbnails/${fileName}`;
+        const { error: uploadError } = await supabase.storage
+          .from('projects')
+          .upload(filePath, thumbnailFile, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
-          const { error: uploadError } = await supabase.storage
-            .from('projects')
-            .upload(filePath, thumbnailFile, {
-              cacheControl: '3600',
-              upsert: false,
-            });
-
-          if (uploadError) {
-            console.error('Supabase storage upload error:', uploadError);
-            throw new Error(`Storage upload failed: ${uploadError.message}. Silakan pastikan bucket 'projects' sudah dibuat dan diatur public di Supabase.`);
-          }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('projects')
-            .getPublicUrl(filePath);
-
-          finalData.thumbnail_url = publicUrl;
-        } else {
-          // Simulated upload: generate a temporary blob URL or save mock path
-          finalData.thumbnail_url = URL.createObjectURL(thumbnailFile);
-          toast.info('File uploaded in simulated local storage.');
+        if (uploadError) {
+          console.error('Supabase storage upload error:', uploadError);
+          throw new Error(`Storage upload failed: ${uploadError.message}. Silakan pastikan bucket 'projects' sudah dibuat dan diatur public di Supabase.`);
         }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('projects')
+          .getPublicUrl(filePath);
+
+        finalData.thumbnail_url = publicUrl;
       }
 
       const res = project?.id

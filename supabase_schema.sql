@@ -1,55 +1,48 @@
--- Supabase Schema for Modern Brutalist Portfolio
--- Execute this SQL script in your Supabase SQL Editor.
+-- ==============================================================================
+-- SUPABASE COMPLETE PRODUCTION SCHEMA FOR JOEL'S MODERN PORTFOLIO
+-- Execute this entire script once in the Supabase Dashboard -> SQL Editor.
+-- ==============================================================================
 
--- Enable UUID extension
+-- 1. Enable UUID Extension
 create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto";
 
--- 1. Profiles Table (For portfolio owner bio)
+-- ==============================================================================
+-- 2. TABLES DEFINITIONS
+-- ==============================================================================
+
+-- 2.1 Profiles Table (Hero & Bio dynamic content)
 create table if not exists public.profiles (
-    id uuid references auth.users on delete cascade primary key,
+    id uuid default gen_random_uuid() primary key,
+    user_id uuid references auth.users(id) on delete set null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    full_name text not null,
-    title text,
-    bio text,
+    full_name text not null default 'Joel',
+    title text default 'Lead Software Engineer & Full Stack Architect',
+    bio text default 'Building premium web experiences at the intersection of high-fidelity interaction, elegant visual design, and clean scalable code. Award-winning aesthetics meets peak performance.',
+    years_experience text default '6+',
     avatar_url text,
-    resume_url text
+    resume_url text default '#'
 );
 
-alter table public.profiles enable row level security;
-
-create policy "Allow public read access to profiles" on public.profiles
-    for select using (true);
-
-create policy "Allow authenticated users to update profiles" on public.profiles
-    for update using (auth.uid() = id);
-
--- 2. Categories Table
+-- 2.2 Categories Table
 create table if not exists public.categories (
-    id uuid default uuid_generate_v4() primary key,
+    id uuid default gen_random_uuid() primary key,
     name text not null unique,
     slug text not null unique,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.categories enable row level security;
+-- 2.3 Technologies Table
+create table if not exists public.technologies (
+    id uuid default gen_random_uuid() primary key,
+    name text not null unique,
+    icon_name text,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
-create policy "Allow public read access to categories" on public.categories
-    for select using (true);
-
-create policy "Allow authenticated admin full access to categories" on public.categories
-    for all using (auth.role() = 'authenticated');
-
--- Seed Default Categories
-insert into public.categories (name, slug) values
-    ('Web Applications', 'web-applications'),
-    ('Mobile Applications', 'mobile-applications'),
-    ('Games', 'games'),
-    ('AI / Data', 'ai-data')
-on conflict (name) do nothing;
-
--- 3. Projects Table
+-- 2.4 Projects Table
 create table if not exists public.projects (
-    id uuid default uuid_generate_v4() primary key,
+    id uuid default gen_random_uuid() primary key,
     title text not null,
     slug text not null unique,
     short_description text,
@@ -62,130 +55,49 @@ create table if not exists public.projects (
     pdf_url text,
     demo_url text,
     github_url text,
-    project_date date,
+    project_date date default current_date,
     role text,
     client text,
     duration text,
-    status text default 'draft'::text check (status in ('draft', 'published')),
+    status text default 'published'::text check (status in ('draft', 'published')),
     featured boolean default false,
     pinned boolean default false,
     sort_order integer default 0,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.projects enable row level security;
-
-create policy "Allow public read access to published projects" on public.projects
-    for select using (status = 'published');
-
-create policy "Allow authenticated admin select projects" on public.projects
-    for select using (auth.role() = 'authenticated');
-
-create policy "Allow authenticated admin full access to projects" on public.projects
-    for all using (auth.role() = 'authenticated');
-
--- 4. Project Images (Gallery)
+-- 2.5 Project Images (Gallery)
 create table if not exists public.project_images (
-    id uuid default uuid_generate_v4() primary key,
+    id uuid default gen_random_uuid() primary key,
     project_id uuid references public.projects(id) on delete cascade not null,
     image_url text not null,
     sort_order integer default 0,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.project_images enable row level security;
-
-create policy "Allow public read access to project_images" on public.project_images
-    for select using (true);
-
-create policy "Allow authenticated admin full access to project_images" on public.project_images
-    for all using (auth.role() = 'authenticated');
-
--- 5. Tags Table
-create table if not exists public.tags (
-    id uuid default uuid_generate_v4() primary key,
-    name text not null unique,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
-alter table public.tags enable row level security;
-
-create policy "Allow public read access to tags" on public.tags
-    for select using (true);
-
-create policy "Allow authenticated admin full access to tags" on public.tags
-    for all using (auth.role() = 'authenticated');
-
--- 6. Project Tags Junction Table
-create table if not exists public.project_tags (
-    project_id uuid references public.projects(id) on delete cascade,
-    tag_id uuid references public.tags(id) on delete cascade,
-    primary key (project_id, tag_id)
-);
-
-alter table public.project_tags enable row level security;
-
-create policy "Allow public read access to project_tags" on public.project_tags
-    for select using (true);
-
-create policy "Allow authenticated admin full access to project_tags" on public.project_tags
-    for all using (auth.role() = 'authenticated');
-
--- 7. Technologies Table
-create table if not exists public.technologies (
-    id uuid default uuid_generate_v4() primary key,
-    name text not null unique,
-    icon_name text, -- Lucide icon name or generic identifier
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
-alter table public.technologies enable row level security;
-
-create policy "Allow public read access to technologies" on public.technologies
-    for select using (true);
-
-create policy "Allow authenticated admin full access to technologies" on public.technologies
-    for all using (auth.role() = 'authenticated');
-
--- 8. Project Technologies Junction Table
+-- 2.6 Project Technologies Junction Table
 create table if not exists public.project_technologies (
     project_id uuid references public.projects(id) on delete cascade,
     technology_id uuid references public.technologies(id) on delete cascade,
     primary key (project_id, technology_id)
 );
 
-alter table public.project_technologies enable row level security;
-
-create policy "Allow public read access to project_technologies" on public.project_technologies
-    for select using (true);
-
-create policy "Allow authenticated admin full access to project_technologies" on public.project_technologies
-    for all using (auth.role() = 'authenticated');
-
--- 9. Experiences Table
+-- 2.7 Work Experiences Table
 create table if not exists public.experiences (
-    id uuid default uuid_generate_v4() primary key,
+    id uuid default gen_random_uuid() primary key,
     role text not null,
     company text not null,
     location text,
-    start_date text not null, -- e.g. "Jan 2024" or "2024-01-01"
-    end_date text default 'Present'::text, -- e.g. "Present" or "Dec 2025"
+    start_date text not null,
+    end_date text default 'Present'::text,
     description text,
     sort_order integer default 0,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.experiences enable row level security;
-
-create policy "Allow public read access to experiences" on public.experiences
-    for select using (true);
-
-create policy "Allow authenticated admin full access to experiences" on public.experiences
-    for all using (auth.role() = 'authenticated');
-
--- 10. Skills Table
+-- 2.8 Skills Table
 create table if not exists public.skills (
-    id uuid default uuid_generate_v4() primary key,
+    id uuid default gen_random_uuid() primary key,
     name text not null,
     level integer default 80 check (level >= 0 and level <= 100),
     category text default 'Frontend'::text check (category in ('Frontend', 'Backend', 'Design', 'Other')),
@@ -193,104 +105,338 @@ create table if not exists public.skills (
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.skills enable row level security;
-
-create policy "Allow public read access to skills" on public.skills
-    for select using (true);
-
-create policy "Allow authenticated admin full access to skills" on public.skills
-    for all using (auth.role() = 'authenticated');
-
--- 11. Social Links Table
+-- 2.9 Social Links Table
 create table if not exists public.social_links (
-    id uuid default uuid_generate_v4() primary key,
-    platform text not null unique, -- e.g., 'Github', 'LinkedIn', 'Instagram', 'Twitter'
+    id uuid default gen_random_uuid() primary key,
+    platform text not null unique,
     url text not null,
     icon text,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.social_links enable row level security;
-
-create policy "Allow public read access to social_links" on public.social_links
-    for select using (true);
-
-create policy "Allow authenticated admin full access to social_links" on public.social_links
-    for all using (auth.role() = 'authenticated');
-
--- 12. Certificates Table
-create table if not exists public.certificates (
-    id uuid default uuid_generate_v4() primary key,
-    name text not null,
-    issuer text not null,
-    issue_date date,
-    credential_url text,
-    credential_id text,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
-alter table public.certificates enable row level security;
-
-create policy "Allow public read access to certificates" on public.certificates
-    for select using (true);
-
-create policy "Allow authenticated admin full access to certificates" on public.certificates
-    for all using (auth.role() = 'authenticated');
-
--- 13. Contact Messages Table
+-- 2.10 Contact Messages Table
 create table if not exists public.contact_messages (
-    id uuid default uuid_generate_v4() primary key,
+    id uuid default gen_random_uuid() primary key,
     name text not null,
     email text not null,
     subject text,
     message text not null,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    read boolean default false
+    read boolean default false,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- ==============================================================================
+-- 3. ROW LEVEL SECURITY (RLS) POLICIES
+-- ==============================================================================
+
+-- Enable RLS on all tables
+alter table public.profiles enable row level security;
+alter table public.categories enable row level security;
+alter table public.technologies enable row level security;
+alter table public.projects enable row level security;
+alter table public.project_images enable row level security;
+alter table public.project_technologies enable row level security;
+alter table public.experiences enable row level security;
+alter table public.skills enable row level security;
+alter table public.social_links enable row level security;
 alter table public.contact_messages enable row level security;
 
--- Anybody can create a contact message, but only authenticated admins can select, update, or delete them
+-- Profiles Policies
+drop policy if exists "Allow public read access to profiles" on public.profiles;
+create policy "Allow public read access to profiles" on public.profiles
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to profiles" on public.profiles;
+create policy "Allow authenticated admin full access to profiles" on public.profiles
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Categories Policies
+drop policy if exists "Allow public read access to categories" on public.categories;
+create policy "Allow public read access to categories" on public.categories
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to categories" on public.categories;
+create policy "Allow authenticated admin full access to categories" on public.categories
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Technologies Policies
+drop policy if exists "Allow public read access to technologies" on public.technologies;
+create policy "Allow public read access to technologies" on public.technologies
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to technologies" on public.technologies;
+create policy "Allow authenticated admin full access to technologies" on public.technologies
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Projects Policies
+drop policy if exists "Allow public read access to published projects" on public.projects;
+create policy "Allow public read access to published projects" on public.projects
+    for select using (status = 'published');
+
+drop policy if exists "Allow authenticated admin full access to projects" on public.projects;
+create policy "Allow authenticated admin full access to projects" on public.projects
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Project Images Policies
+drop policy if exists "Allow public read access to project_images" on public.project_images;
+create policy "Allow public read access to project_images" on public.project_images
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to project_images" on public.project_images;
+create policy "Allow authenticated admin full access to project_images" on public.project_images
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Project Technologies Policies
+drop policy if exists "Allow public read access to project_technologies" on public.project_technologies;
+create policy "Allow public read access to project_technologies" on public.project_technologies
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to project_technologies" on public.project_technologies;
+create policy "Allow authenticated admin full access to project_technologies" on public.project_technologies
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Experiences Policies
+drop policy if exists "Allow public read access to experiences" on public.experiences;
+create policy "Allow public read access to experiences" on public.experiences
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to experiences" on public.experiences;
+create policy "Allow authenticated admin full access to experiences" on public.experiences
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Skills Policies
+drop policy if exists "Allow public read access to skills" on public.skills;
+create policy "Allow public read access to skills" on public.skills
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to skills" on public.skills;
+create policy "Allow authenticated admin full access to skills" on public.skills
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Social Links Policies
+drop policy if exists "Allow public read access to social_links" on public.social_links;
+create policy "Allow public read access to social_links" on public.social_links
+    for select using (true);
+
+drop policy if exists "Allow authenticated admin full access to social_links" on public.social_links;
+create policy "Allow authenticated admin full access to social_links" on public.social_links
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
+
+-- Contact Messages Policies
+drop policy if exists "Allow public insert to contact_messages" on public.contact_messages;
 create policy "Allow public insert to contact_messages" on public.contact_messages
     for insert with check (true);
 
+drop policy if exists "Allow authenticated admin full access to contact_messages" on public.contact_messages;
 create policy "Allow authenticated admin full access to contact_messages" on public.contact_messages
-    for all using (auth.role() = 'authenticated');
+    for all using (auth.role() = 'authenticated')
+    with check (auth.role() = 'authenticated');
 
--- 14. Trigger to create profile when auth.users is created
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-    insert into public.profiles (id, full_name, title, bio, avatar_url)
-    values (
-        new.id,
-        coalesce(new.raw_user_meta_data->>'full_name', 'Administrator'),
-        'Full Stack Developer & Software Engineer',
-        'Creating high-end web experiences.',
-        null
-    );
-    return new;
-end;
-$$ language plpgsql security definer;
+-- ==============================================================================
+-- 4. STORAGE BUCKET CONFIGURATION (For Project Thumbnails & Images)
+-- ==============================================================================
 
-create or replace trigger on_auth_user_created
-    after insert on auth.users
-    for each row execute procedure public.handle_new_user();
-
--- 15. Storage Bucket Setup for Project Thumbnails/Images
--- We create a public bucket named 'projects' if it doesn't already exist.
+-- Create public bucket 'projects' if it doesn't exist
 insert into storage.buckets (id, name, public)
 values ('projects', 'projects', true)
-on conflict (id) do nothing;
+on conflict (id) do update set public = true;
 
--- Set up policies for storage access
--- Allow public read access to all files in the projects bucket
+-- Storage RLS Policies
+drop policy if exists "Allow public read access to projects bucket" on storage.objects;
 create policy "Allow public read access to projects bucket" on storage.objects
     for select using (bucket_id = 'projects');
 
--- Allow authenticated users (admin) to insert/update/delete objects in the projects bucket
+drop policy if exists "Allow authenticated admin full access to projects bucket" on storage.objects;
 create policy "Allow authenticated admin full access to projects bucket" on storage.objects
     for all using (
         bucket_id = 'projects' 
         and auth.role() = 'authenticated'
+    )
+    with check (
+        bucket_id = 'projects' 
+        and auth.role() = 'authenticated'
     );
+
+-- ==============================================================================
+-- 5. INITIAL SEED DATA
+-- ==============================================================================
+
+-- 5.1 Initial Profile Seed (Hero Title, Bio, & Years Experience)
+insert into public.profiles (full_name, title, bio, years_experience, resume_url)
+values (
+    'Joel',
+    'Lead Software Engineer & Full Stack Architect',
+    'Building premium web experiences at the intersection of high-fidelity interaction, elegant visual design, and clean scalable code. Award-winning aesthetics meets peak performance.',
+    '6+',
+    '#'
+)
+on conflict do nothing;
+
+-- 5.2 Categories Seed
+insert into public.categories (name, slug) values
+    ('Web Applications', 'web-applications'),
+    ('Mobile Applications', 'mobile-applications'),
+    ('Games', 'games'),
+    ('AI / Data', 'ai-data')
+on conflict (name) do nothing;
+
+-- 5.3 Technologies Seed
+insert into public.technologies (name) values
+    ('Next.js'),
+    ('React.js'),
+    ('TypeScript'),
+    ('Node.js'),
+    ('Go (Golang)'),
+    ('Python'),
+    ('Flutter'),
+    ('PostgreSQL'),
+    ('Docker'),
+    ('Git'),
+    ('Three.js'),
+    ('Framer Motion'),
+    ('Tailwind CSS'),
+    ('Supabase')
+on conflict (name) do nothing;
+
+-- 5.4 Initial Work Experiences Seed
+insert into public.experiences (role, company, location, start_date, end_date, description, sort_order)
+values
+    (
+        'Lead Frontend Architect',
+        'Vortex Studio',
+        'Remote / Jakarta',
+        '2025',
+        'Present',
+        'Leading a team of 4 developers building high-fidelity client portfolios and premium e-commerce applications. Focused on WebGL visual performance and robust Next.js layouts.',
+        1
+    ),
+    (
+        'Full Stack Developer',
+        'Stellar Tech',
+        'Singapore',
+        '2023',
+        '2025',
+        'Developed scalable microservices using NestJS and Supabase. Optimized database queries, reducing average API response time by 40%. Implemented secure authorization layers.',
+        2
+    ),
+    (
+        'UI Engineer & Intern',
+        'Pixel Craft',
+        'Bandung',
+        '2022',
+        '2023',
+        'Crafted elegant, responsive visual designs and interactive prototypes using Figma and pure HTML/JS. Promoted semantic HTML structures and performance audits.',
+        3
+    )
+on conflict do nothing;
+
+-- 5.5 Initial Published Projects Seed
+do $$
+declare
+    cat_web uuid;
+    cat_mobile uuid;
+    cat_ai uuid;
+    proj_1 uuid;
+    proj_2 uuid;
+    proj_3 uuid;
+    tech_next uuid;
+    tech_three uuid;
+    tech_framer uuid;
+    tech_react uuid;
+    tech_supa uuid;
+    tech_tail uuid;
+    tech_ts uuid;
+begin
+    select id into cat_web from public.categories where slug = 'web-applications' limit 1;
+    select id into cat_mobile from public.categories where slug = 'mobile-applications' limit 1;
+    select id into cat_ai from public.categories where slug = 'ai-data' limit 1;
+
+    -- Project 1: Aura
+    insert into public.projects (
+        title, slug, short_description, description, challenge, solution,
+        category_id, thumbnail_url, demo_url, github_url, project_date,
+        role, client, duration, status, featured, pinned, sort_order
+    ) values (
+        'Aura Spatial Interface',
+        'aura-spatial-interface',
+        'An immersive web portal exploring spatial design using React Three Fiber, GLSL shaders, and interactive physics.',
+        'Aura is a web experiment in spatial UI/UX design. The goal was to build a virtual gallery workspace that is fully responsive, interactive, and operates at 60fps on mobile. By optimizing buffer geometries and custom shader materials, we achieved top tier performance without compromising on visuals.',
+        'Rendering hundreds of interactive 3D physics nodes on mobile browsers caused significant frame rate drops. Standard physics packages like @react-three/cannon were too heavy.',
+        'Built a lightweight custom math-based particle force-field resolver directly inside the requestAnimationFrame loop, reducing CPU overhead by 75%.',
+        cat_web, '', 'https://aura.example.com', 'https://github.com/joel/aura',
+        '2026-03-15', 'Creative Developer & 3D Artist', 'Design Forward Labs', '2 Months',
+        'published', true, true, 1
+    ) on conflict (slug) do nothing
+    returning id into proj_1;
+
+    -- Project 2: Pulse
+    insert into public.projects (
+        title, slug, short_description, description, challenge, solution,
+        category_id, thumbnail_url, demo_url, github_url, project_date,
+        role, client, duration, status, featured, pinned, sort_order
+    ) values (
+        'Pulse Fintech Ecosystem',
+        'pulse-fintech-ecosystem',
+        'A real-time financial tracking dashboard featuring secure OAuth auth, live data streaming, and automated reports.',
+        'Pulse is an enterprise financial intelligence tool that integrates multiple bank APIs into a single fast-loading, beautiful modern user interface. Features comprehensive multi-currency support, custom PDF generation, and WebSockets live rate streaming.',
+        'Aggregating large datasets from different banking APIs caused high latency. Initial page load was slow and dashboard charts would lag during data re-validation.',
+        'Implemented Next.js Server Actions with Redis caching layers and edge route handlers. Deployed incremental static regeneration (ISR) for stable database queries.',
+        cat_mobile, '', 'https://pulse.example.com', 'https://github.com/joel/pulse',
+        '2025-11-10', 'Lead Full-Stack Engineer', 'Pulse Corp', '5 Months',
+        'published', true, false, 2
+    ) on conflict (slug) do nothing
+    returning id into proj_2;
+
+    -- Project 3: Nova
+    insert into public.projects (
+        title, slug, short_description, description, challenge, solution,
+        category_id, thumbnail_url, demo_url, github_url, project_date,
+        role, client, duration, status, featured, pinned, sort_order
+    ) values (
+        'Nova Design System',
+        'nova-design-system',
+        'A highly modular, accessible design system containing ready-to-use modern minimalist components built with React and Tailwind.',
+        'Nova is a component library built explicitly for rapid portfolio prototyping. Fully compliant with WCAG 2.1 AA accessibility guidelines, supports dark mode out-of-the-box, and is lightweight.',
+        'Making rich animations work smoothly while supporting full screen-reader accessibility and keyboard tab indexes.',
+        'Leveraged Radix UI primitives as underlying structures and mapped Framer Motion states directly to HTML ARIA attributes.',
+        cat_ai, '', 'https://nova.example.com', 'https://github.com/joel/nova',
+        '2025-06-01', 'UI Architect & Lead Designer', 'Open Source Community', '3 Months',
+        'published', false, false, 3
+    ) on conflict (slug) do nothing
+    returning id into proj_3;
+
+    -- Link technologies to projects if ids are available
+    if proj_1 is not null then
+        select id into tech_next from public.technologies where name = 'Next.js' limit 1;
+        select id into tech_three from public.technologies where name = 'Three.js' limit 1;
+        select id into tech_framer from public.technologies where name = 'Framer Motion' limit 1;
+        if tech_next is not null then insert into public.project_technologies values (proj_1, tech_next) on conflict do nothing; end if;
+        if tech_three is not null then insert into public.project_technologies values (proj_1, tech_three) on conflict do nothing; end if;
+        if tech_framer is not null then insert into public.project_technologies values (proj_1, tech_framer) on conflict do nothing; end if;
+    end if;
+
+    if proj_2 is not null then
+        select id into tech_react from public.technologies where name = 'React.js' limit 1;
+        select id into tech_supa from public.technologies where name = 'Supabase' limit 1;
+        select id into tech_tail from public.technologies where name = 'Tailwind CSS' limit 1;
+        if tech_react is not null then insert into public.project_technologies values (proj_2, tech_react) on conflict do nothing; end if;
+        if tech_supa is not null then insert into public.project_technologies values (proj_2, tech_supa) on conflict do nothing; end if;
+        if tech_tail is not null then insert into public.project_technologies values (proj_2, tech_tail) on conflict do nothing; end if;
+    end if;
+
+    if proj_3 is not null then
+        select id into tech_ts from public.technologies where name = 'TypeScript' limit 1;
+        select id into tech_tail from public.technologies where name = 'Tailwind CSS' limit 1;
+        if tech_ts is not null then insert into public.project_technologies values (proj_3, tech_ts) on conflict do nothing; end if;
+        if tech_tail is not null then insert into public.project_technologies values (proj_3, tech_tail) on conflict do nothing; end if;
+    end if;
+end $$;
