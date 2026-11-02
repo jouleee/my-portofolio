@@ -311,35 +311,53 @@ insert into public.technologies (name) values
     ('Supabase')
 on conflict (name) do nothing;
 
--- 5.4 Initial Work Experiences Seed
+-- 5.4 Initial Work Experiences Seed (Joel's Real Experiences)
 insert into public.experiences (role, company, location, start_date, end_date, description, sort_order)
 values
     (
-        'Lead Frontend Architect',
-        'Vortex Studio',
-        'Remote / Jakarta',
-        '2025',
+        'Fullstack Software Developer',
+        'PT Bhinneka Sangkuriang Transport',
+        'Bandung',
+        'Jul 2026',
         'Present',
-        'Leading a team of 4 developers building high-fidelity client portfolios and premium e-commerce applications. Focused on WebGL visual performance and robust Next.js layouts.',
+        'Architected and developed the comprehensive Fleet Management System for Bhinneka shuttle services. Engineered real-time vehicle telemetry via GPS API integrations, built interactive operational dashboards, and connected internal microservices across fleet scheduling and tracking.',
         1
     ),
     (
-        'Full Stack Developer',
-        'Stellar Tech',
-        'Singapore',
-        '2023',
-        '2025',
-        'Developed scalable microservices using NestJS and Supabase. Optimized database queries, reducing average API response time by 40%. Implemented secure authorization layers.',
+        'Fullstack Software Developer Intern',
+        'PT Len Inovasi Teknologi',
+        'Bandung',
+        'Feb 2026',
+        'Jul 2026',
+        'Developed mission-critical web applications for defense and strategic systems. Built a full-stack microservices versioning and status monitoring dashboard with Node.js and React.js, and contributed to the Combat Management System (CMS) video module for recording electro-optical sensor streams using React.js, Go, and C++.',
         2
     ),
     (
-        'UI Engineer & Intern',
-        'Pixel Craft',
+        'Freelance Web Developer',
+        'Codifyve',
         'Bandung',
-        '2022',
-        '2023',
-        'Crafted elegant, responsive visual designs and interactive prototypes using Figma and pure HTML/JS. Promoted semantic HTML structures and performance audits.',
+        'Oct 2025',
+        'Present',
+        'Delivered client-facing web applications including a secure Computer-Based Testing (CBT) platform with automated scoring powered by Laravel, as well as an interactive exhibition website with dynamic content management and responsive UI.',
         3
+    ),
+    (
+        'Frontend Web Developer (Project Based)',
+        'Yayasan Inspirasi Semangat Sekolah',
+        'Depok',
+        'Feb 2025',
+        'Present',
+        'Engineered responsive web interfaces and admin dashboards for an educational scholarship foundation. Developed the public-facing organization portal, end-to-end applicant tracking and evaluation workflows, and seamlessly integrated REST APIs with backend services.',
+        4
+    ),
+    (
+        'Programming Teaching Assistant',
+        'Universitas Pendidikan Indonesia',
+        'Bandung',
+        'Aug 2024',
+        'Dec 2025',
+        'Conducted weekly lab practicums for 70+ computer science students across core curriculum courses. Designed algorithmic exercises, mentored students in C, C++, Java, and OOP fundamentals, and guided software development best practices and debugging techniques.',
+        5
     )
 on conflict do nothing;
 
