@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { deleteExperience, updateExperiencesOrder } from '@/app/actions';
 import { toast } from 'sonner';
-import { Edit, Trash2, Plus, GripVertical } from 'lucide-react';
+import { Edit, Trash2, Plus, GripVertical, Briefcase } from 'lucide-react';
 import { Reorder } from 'framer-motion';
 
 type Experience = {
@@ -58,21 +58,24 @@ export default function ExperiencesListClient({ initialExperiences }: { initialE
   return (
     <div className="space-y-6 font-space-grotesk">
       {/* Create Button */}
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <span className="text-xs font-space-grotesk text-foreground/50">
+          Drag and drop rows using the grip handle to adjust timeline chronology.
+        </span>
         <Link
           href="/admin/dashboard/experiences/new"
-          className="px-5 py-3 bg-brutalist-pink text-white brutalist-border rounded-xl shadow-[3px_3px_0px_0px_#0f0f0f] hover:translate-x-[-1.5px] hover:translate-y-[-1.5px] hover:shadow-[4.5px_4.5px_0px_0px_#0f0f0f] font-black uppercase text-sm flex items-center gap-2 cursor-pointer transition-all"
+          className="px-6 py-3 rounded-full bg-foreground text-background font-space-grotesk font-bold text-xs sm:text-sm tracking-wide hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer shadow-[0_6px_25px_rgba(255,255,255,0.12)] hover:shadow-[0_10px_35px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0"
         >
           <Plus className="w-4 h-4" />
-          Create Experience
+          <span>New Experience</span>
         </Link>
       </div>
 
       {/* Directory list grid wrapper */}
-      <div className="bg-background brutalist-border rounded-2xl overflow-hidden brutalist-shadow-black dark:shadow-[4px_4px_0px_0px_var(--border-color)]">
+      <div className="rounded-3xl bg-zinc-950/70 border border-white/[0.08] backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
         <div className="overflow-x-auto min-w-[768px]">
           {/* Header Row */}
-          <div className="grid grid-cols-12 gap-4 border-b-[3px] border-brutalist-dark dark:border-brutalist-light bg-muted/10 p-4 font-black text-sm uppercase">
+          <div className="grid grid-cols-12 gap-4 border-b border-white/[0.08] bg-white/[0.02] p-4 text-xs font-space-grotesk font-bold uppercase tracking-wider text-foreground/60">
             <div className="col-span-1 flex items-center justify-center">Order</div>
             <div className="col-span-3">Role</div>
             <div className="col-span-3">Company</div>
@@ -86,49 +89,59 @@ export default function ExperiencesListClient({ initialExperiences }: { initialE
             axis="y"
             values={experiences}
             onReorder={handleReorder}
-            className="divide-y-[3px] divide-brutalist-dark dark:divide-brutalist-light"
+            className="divide-y divide-white/[0.06]"
           >
             {experiences.length === 0 ? (
-              <div className="p-8 text-center text-sm font-bold text-foreground/50 uppercase">
-                No experiences found
+              <div className="p-12 text-center text-sm font-space-grotesk text-foreground/50 flex flex-col items-center justify-center gap-2">
+                <Briefcase className="w-8 h-8 text-foreground/30" />
+                <p className="font-bold text-foreground/70">No experiences registered yet</p>
+                <p className="text-xs text-foreground/40">Click "New Experience" above to log your career history milestones.</p>
               </div>
             ) : (
               experiences.map((exp) => (
                 <Reorder.Item
                   key={exp.id}
                   value={exp}
-                  className="grid grid-cols-12 gap-4 p-4 items-center bg-background hover:bg-muted/5 font-bold text-sm select-none"
+                  className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/[0.02] transition-colors select-none text-sm"
                 >
                   {/* Grip drag handle */}
-                  <div className="col-span-1 flex items-center justify-center cursor-grab active:cursor-grabbing text-foreground/40 hover:text-foreground transition-colors p-2">
+                  <div className="col-span-1 flex items-center justify-center cursor-grab active:cursor-grabbing text-foreground/30 hover:text-sky-400 transition-colors p-2">
                     <GripVertical className="w-5 h-5" />
                   </div>
 
                   {/* Role */}
-                  <div className="col-span-3 font-black uppercase truncate">{exp.role}</div>
+                  <div className="col-span-3 font-syne font-bold text-foreground truncate">
+                    {exp.role}
+                  </div>
 
                   {/* Company */}
-                  <div className="col-span-3 uppercase text-brutalist-pink truncate">{exp.company}</div>
+                  <div className="col-span-3 font-medium text-sky-400/90 truncate">
+                    {exp.company}
+                  </div>
 
                   {/* Period */}
-                  <div className="col-span-2">{exp.start_date} — {exp.end_date}</div>
+                  <div className="col-span-2 text-xs text-foreground/60">
+                    {exp.start_date} — {exp.end_date}
+                  </div>
 
                   {/* Location */}
-                  <div className="col-span-2 truncate">{exp.location}</div>
+                  <div className="col-span-2 text-xs text-foreground/50 truncate">
+                    {exp.location || 'Remote'}
+                  </div>
 
                   {/* Action buttons */}
                   <div className="col-span-1 flex justify-center items-center gap-2">
                     <Link
                       href={`/admin/dashboard/experiences/${exp.id}/edit`}
-                      className="p-1.5 rounded-lg brutalist-border-thin bg-background hover:bg-brutalist-yellow transition-colors cursor-pointer text-foreground"
-                      aria-label="Edit experience"
+                      className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-foreground/70 hover:text-foreground transition-all cursor-pointer"
+                      title="Edit experience"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </Link>
                     <button
                       onClick={() => handleDelete(exp.id, exp.role, exp.company)}
-                      className="p-1.5 rounded-lg brutalist-border-thin bg-background hover:bg-brutalist-pink hover:text-white transition-colors cursor-pointer text-foreground"
-                      aria-label="Delete experience"
+                      className="p-2 rounded-xl bg-white/[0.03] hover:bg-red-500/10 border border-white/[0.08] hover:border-red-500/25 text-foreground/70 hover:text-red-400 transition-all cursor-pointer"
+                      title="Delete experience"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

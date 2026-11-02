@@ -268,37 +268,47 @@ export async function updateProfile(profileData: {
       .limit(1)
       .maybeSingle();
 
+    const payload: any = {
+      full_name: profileData.full_name,
+      title: profileData.title,
+      bio: profileData.bio,
+      years_experience: profileData.years_experience || '6+',
+      avatar_url: profileData.avatar_url || null,
+      resume_url: profileData.resume_url || '#',
+      updated_at: new Date().toISOString(),
+    };
+
     if (existing?.id) {
-      const { error } = await supabase
+      let { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: profileData.full_name,
-          title: profileData.title,
-          bio: profileData.bio,
-          years_experience: profileData.years_experience || '6+',
-          avatar_url: profileData.avatar_url || null,
-          resume_url: profileData.resume_url || '#',
-          updated_at: new Date().toISOString(),
-        })
+        .update(payload)
         .eq('id', existing.id);
+
+      if (error && error.message.includes('years_experience')) {
+        delete payload.years_experience;
+        const retry = await supabase
+          .from('profiles')
+          .update(payload)
+          .eq('id', existing.id);
+        error = retry.error;
+      }
 
       if (error) {
         console.error('updateProfile error:', error);
         return { success: false, error: error.message };
       }
     } else {
-      const { error } = await supabase
+      let { error } = await supabase
         .from('profiles')
-        .insert([
-          {
-            full_name: profileData.full_name,
-            title: profileData.title,
-            bio: profileData.bio,
-            years_experience: profileData.years_experience || '6+',
-            avatar_url: profileData.avatar_url || null,
-            resume_url: profileData.resume_url || '#',
-          },
-        ]);
+        .insert([payload]);
+
+      if (error && error.message.includes('years_experience')) {
+        delete payload.years_experience;
+        const retry = await supabase
+          .from('profiles')
+          .insert([payload]);
+        error = retry.error;
+      }
 
       if (error) {
         console.error('insertProfile error:', error);

@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- SUPABASE COMPLETE PRODUCTION SCHEMA FOR JOEL'S MODERN PORTFOLIO
--- Execute this entire script once in the Supabase Dashboard -> SQL Editor.
+-- Execute this entire script in the Supabase Dashboard -> SQL Editor.
 -- ==============================================================================
 
 -- 1. Enable UUID Extension
@@ -23,6 +23,10 @@ create table if not exists public.profiles (
     avatar_url text,
     resume_url text default '#'
 );
+
+-- Ensure columns exist even if profiles table already existed prior to this update
+alter table public.profiles add column if not exists years_experience text default '6+';
+alter table public.profiles add column if not exists user_id uuid references auth.users(id) on delete set null;
 
 -- 2.2 Categories Table
 create table if not exists public.categories (
@@ -440,3 +444,6 @@ begin
         if tech_tail is not null then insert into public.project_technologies values (proj_3, tech_tail) on conflict do nothing; end if;
     end if;
 end $$;
+
+-- 6. Reload PostgREST schema cache
+notify pgrst, 'reload schema';

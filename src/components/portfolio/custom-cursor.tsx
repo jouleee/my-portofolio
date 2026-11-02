@@ -1,12 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
 
 export default function CustomCursor() {
-  const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin');
-
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
 
@@ -25,7 +21,7 @@ export default function CustomCursor() {
     checkPointer();
     window.addEventListener('resize', checkPointer);
 
-    if (isTouchDevice || isAdmin) return;
+    if (isTouchDevice) return;
 
     // Track coordinates directly on GPU without triggering React state re-renders
     let targetX = -100;
@@ -118,9 +114,9 @@ export default function CustomCursor() {
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
     };
-  }, [isTouchDevice, isAdmin]);
+  }, [isTouchDevice]);
 
-  if (isTouchDevice || isAdmin || !isVisible) return null;
+  if (isTouchDevice || !isVisible) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden select-none">
