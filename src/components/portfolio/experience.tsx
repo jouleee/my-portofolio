@@ -183,7 +183,7 @@ export default function Experience({ experiences }: ExperienceProps) {
   const xWatermark = useTransform(smoothProgress, [0, 1], ['-10%', '15%']);
 
   return (
-    <section id="experience" className="py-28 md:py-36 lg:py-44 relative overflow-hidden">
+    <section id="experience" className="py-16 sm:py-24 md:py-32 lg:py-36 relative overflow-hidden scroll-mt-28">
       {/* Background Parallax Watermark Text */}
       <div
         aria-hidden="true"
@@ -200,7 +200,7 @@ export default function Experience({ experiences }: ExperienceProps) {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         {/* Section Header */}
         <ScrollReveal yOffset={25}>
-          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-20 sm:mb-28">
+          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-12 sm:mb-16 md:mb-20">
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-syne tracking-tight text-foreground">
               Work Experience
             </h2>

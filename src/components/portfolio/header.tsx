@@ -96,28 +96,46 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown with Liquid Glass */}
+      {/* Mobile Menu Dropdown with Liquid Glass (Floating Absolute Overlay - Zero Layout Shift) */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="md:hidden mt-3 max-w-7xl mx-auto rounded-3xl bg-zinc-950/70 backdrop-blur-3xl border border-white/[0.14] p-5 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_25px_50px_rgba(0,0,0,0.6)]"
-          >
-            <div className="flex flex-col gap-1.5">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className="w-full text-left px-5 py-3.5 text-base font-space-grotesk font-semibold text-foreground/85 hover:text-foreground hover:bg-white/[0.08] rounded-2xl transition-all cursor-pointer"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </motion.div>
+          <>
+            {/* Backdrop: Clicking outside closes the menu */}
+            <motion.div
+              key="mobile-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            />
+
+            {/* Floating Dropdown Menu Card (Absolute Overlay - NEVER pushes content!) */}
+            <motion.div
+              key="mobile-dropdown"
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute top-[calc(100%+0.5rem)] inset-x-4 max-w-lg mx-auto rounded-3xl bg-zinc-950/90 backdrop-blur-3xl border border-white/[0.14] p-4 sm:p-5 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.2),0_25px_60px_rgba(0,0,0,0.85)] z-50 md:hidden"
+            >
+              <div className="flex flex-col gap-1.5">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className="w-full text-left px-5 py-3.5 text-base font-space-grotesk font-semibold text-foreground/85 hover:text-foreground hover:bg-white/[0.08] active:bg-white/[0.12] rounded-2xl transition-all cursor-pointer flex items-center justify-between group"
+                  >
+                    <span>{item.label}</span>
+                    <span className="text-xs text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>

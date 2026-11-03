@@ -49,16 +49,16 @@ export default function Hero({ profile }: HeroProps) {
   // Kinetic typography watermark in background
   const xWatermark = useTransform(smoothProgress, [0, 1], ['0%', isMobile ? '-12%' : '-22%']);
   
-  // Moderate vertical parallax for avatar
-  const yPhoto = useTransform(smoothProgress, [0, 1], [0, isMobile ? 35 : 75]);
+  // Moderate vertical parallax for avatar (calibrated: rock-solid on mobile, silky parallax on desktop)
+  const yPhoto = useTransform(smoothProgress, [0, 1], [0, isMobile ? 0 : 60]);
   const rotatePhoto = useTransform(smoothProgress, [0, 1], [0, isMobile ? 0 : -2]);
-  const scalePhoto = useTransform(smoothProgress, [0, 1], [1, 0.96]);
+  const scalePhoto = useTransform(smoothProgress, [0, 1], [1, isMobile ? 1 : 0.96]);
 
   // Floating Status badge parallax offset
-  const yBadgeStatus = useTransform(smoothProgress, [0, 1], [0, isMobile ? -25 : -65]);
+  const yBadgeStatus = useTransform(smoothProgress, [0, 1], [0, isMobile ? 0 : -50]);
 
   // Text content drift
-  const yContent = useTransform(smoothProgress, [0, 1], [0, isMobile ? 15 : 35]);
+  const yContent = useTransform(smoothProgress, [0, 1], [0, isMobile ? 0 : 25]);
   const opacityFade = useTransform(smoothProgress, [0, 0.95], [1, 0.2]);
 
   const scrollToSection = (id: string) => {
@@ -76,7 +76,7 @@ export default function Hero({ profile }: HeroProps) {
     <section
       id="intro"
       ref={containerRef}
-      className="relative min-h-[94svh] flex flex-col justify-center overflow-x-clip px-6 sm:px-10 lg:px-16 pt-10 pb-16 md:py-20 lg:py-24"
+      className="relative min-h-0 lg:min-h-[calc(100vh-5.5rem)] flex flex-col justify-center overflow-x-clip px-5 sm:px-8 lg:px-16 pt-4 pb-12 sm:pt-6 sm:pb-16 lg:py-16"
     >
       <FloatingShapes />
 
@@ -96,7 +96,7 @@ export default function Hero({ profile }: HeroProps) {
       <div className="w-full max-w-7xl mx-auto">
         <motion.div
           style={{ opacity: opacityFade }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 xl:gap-16 items-center"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 xl:gap-16 items-center"
         >
           {/* LEFT COLUMN: Clean 8-Bit Avatar Frame */}
           <div className="lg:col-span-5 flex justify-center order-1 lg:order-1">
@@ -236,7 +236,7 @@ export default function Hero({ profile }: HeroProps) {
         onClick={() => scrollToSection('skills')}
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-        className="mt-12 sm:mt-16 flex flex-col items-center gap-2 text-foreground/40 hover:text-foreground/80 transition-colors cursor-pointer group mx-auto"
+        className="mt-8 sm:mt-12 lg:mt-14 flex flex-col items-center gap-2 text-foreground/40 hover:text-foreground/80 transition-colors cursor-pointer group mx-auto"
         aria-label="Scroll to Skills & Stack"
       >
         <span className="text-[10px] uppercase font-space-grotesk tracking-widest font-semibold group-hover:tracking-wider transition-all">

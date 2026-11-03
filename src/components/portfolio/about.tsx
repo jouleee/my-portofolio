@@ -82,8 +82,8 @@ export default function About(_props: any) {
 
   // Multi-axis scroll transformations with entry (0-6%) & exit (94-100%) resting buffers
   // Cards settle into position before unpinning, so fast scrolling never snaps or cuts off
-  const yLeft = useTransform(smoothProgress, [0.06, 0.94], [25, -145], { clamp: true });
-  const yRight = useTransform(smoothProgress, [0.06, 0.94], [-135, 35], { clamp: true });
+  const yLeft = useTransform(smoothProgress, [0.06, 0.94], [20, -125], { clamp: true });
+  const yRight = useTransform(smoothProgress, [0.06, 0.94], [-120, 25], { clamp: true });
 
   // Subtle lateral drift
   const xLeft = useTransform(smoothProgress, [0.06, 0.5, 0.94], [-12, 5, -8], { clamp: true });
@@ -101,14 +101,14 @@ export default function About(_props: any) {
     <section
       id="skills"
       ref={sectionRef}
-      className="relative"
+      className="relative scroll-mt-28"
       // Ample scroll track for controlled, calm scroll scrubbing
       style={{ height: '240vh' }}
     >
-      {/* Sticky Stage Viewport: Vertically centered in screen with liquid-nav clearance */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-center pt-16 sm:pt-18 pb-4 sm:pb-6 px-4 sm:px-6 md:px-8 overflow-hidden bg-background">
-        {/* Section Header (Above Cards - Title & Body Only, Never colliding with navbar) */}
-        <div className="text-center mb-5 sm:mb-7 max-w-xl mx-auto px-4 z-20 shrink-0">
+      {/* Sticky Stage Viewport: Vertically centered in screen with ample floating-nav clearance */}
+      <div className="sticky top-0 h-screen w-full flex flex-col justify-center pt-24 sm:pt-28 md:pt-32 pb-4 sm:pb-6 px-4 sm:px-6 md:px-8 overflow-hidden bg-background">
+        {/* Section Header (Above Cards - Title & Body Only, Placed completely clear below navbar) */}
+        <div className="text-center mb-4 sm:mb-6 max-w-xl mx-auto px-4 z-20 shrink-0">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-syne tracking-tight text-foreground">
             Technical Stack
           </h2>
@@ -118,7 +118,7 @@ export default function About(_props: any) {
         </div>
 
         {/* 2-Column Asymmetric Ticker Stage with Top & Bottom Fade Masks (Proportionally sized, never cut off) */}
-        <div className="relative w-full max-w-3xl sm:max-w-4xl mx-auto h-[440px] sm:h-[480px] md:h-[510px] overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_14%,black_86%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_14%,black_86%,transparent_100%)] px-3 sm:px-6 z-10">
+        <div className="relative w-full max-w-3xl sm:max-w-4xl mx-auto h-[380px] sm:h-[420px] md:h-[450px] overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_14%,black_86%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_14%,black_86%,transparent_100%)] px-3 sm:px-6 z-10">
           <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-start h-full">
             {/* Left Column (5 Unique Stacks, Moves UP) */}
             <motion.div

@@ -296,7 +296,7 @@ export default function ProjectsShowcase({ projects }: ProjectsShowcaseProps) {
     <section
       id="projects"
       ref={sectionRef}
-      className="relative"
+      className="relative scroll-mt-28"
       // Height provides ample scroll scrubbing distance: 100vh per project frame
       style={{ height: `${totalProjects * 100}vh` }}
     >
@@ -314,7 +314,7 @@ export default function ProjectsShowcase({ projects }: ProjectsShowcaseProps) {
       </div>
 
       {/* Sticky Stage Viewport: Vertically centered in viewport with clearance below liquid navbar */}
-      <div className="sticky top-0 h-svh flex flex-col justify-center pt-16 sm:pt-20 pb-4 sm:pb-6 px-4 sm:px-8 lg:px-12 overflow-hidden">
+      <div className="sticky top-0 h-svh flex flex-col justify-center pt-24 sm:pt-28 md:pt-30 pb-4 sm:pb-6 px-4 sm:px-8 lg:px-12 overflow-hidden">
         <div className="w-full max-w-5xl mx-auto flex flex-col">
           {/* Section Header: Clean title with proper clearance and zero clutter */}
           <div className="mb-3 sm:mb-4 text-left">

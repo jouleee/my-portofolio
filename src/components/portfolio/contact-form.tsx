@@ -7,7 +7,7 @@ import SpotlightCard from '@/components/portfolio/spotlight-card';
 
 export default function ContactForm() {
   return (
-    <section id="contact" className="py-24 sm:py-32 md:py-36 relative overflow-hidden">
+    <section id="contact" className="py-16 sm:py-24 md:py-28 relative overflow-hidden scroll-mt-28">
       {/* Background Kinetic Typography Parallax Watermark */}
       <div
         aria-hidden="true"
