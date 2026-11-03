@@ -13,7 +13,6 @@ const profileFormSchema = z.object({
   full_name: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   title: z.string().min(5, { message: 'Title / Role must be at least 5 characters.' }),
   bio: z.string().min(10, { message: 'Bio / Hero description must be at least 10 characters.' }),
-  years_experience: z.string().min(1, { message: 'Years of experience is required (e.g. 6+).' }),
   resume_url: z.string().optional(),
 });
 
@@ -44,7 +43,6 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
       full_name: profile?.full_name || 'Joel',
       title: profile?.title || 'Lead Software Engineer & Full Stack Architect',
       bio: profile?.bio || 'Building premium web experiences at the intersection of high-fidelity interaction, elegant visual design, and clean scalable code. Award-winning aesthetics meets peak performance.',
-      years_experience: profile?.years_experience || '6+',
       resume_url: profile?.resume_url || '#',
     },
   });
@@ -79,7 +77,7 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
               Profile & Hero Editor
             </h2>
             <p className="text-xs font-space-grotesk text-foreground/50 mt-0.5">
-              Live configuration for personal introduction, hero headline, and experience KPI
+              Live configuration for personal introduction and hero headline
             </p>
           </div>
         </div>
@@ -102,20 +100,17 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
               )}
             </div>
 
-            {/* Years of Experience / KPI */}
+            {/* Resume URL */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
-                Years Experience KPI *
+                Resume / CV Link
               </label>
               <input
                 type="text"
-                {...register('years_experience')}
-                placeholder="e.g. 6+"
+                {...register('resume_url')}
+                placeholder="https://example.com/resume.pdf or #"
                 className="w-full px-4 py-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/15 focus:border-sky-400/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-sky-400/20 text-foreground text-sm outline-none transition-all placeholder:text-foreground/30"
               />
-              {errors.years_experience && (
-                <span className="text-xs text-rose-400 font-semibold">{errors.years_experience.message}</span>
-              )}
             </div>
           </div>
 
@@ -149,19 +144,6 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
             {errors.bio && (
               <span className="text-xs text-rose-400 font-semibold">{errors.bio.message}</span>
             )}
-          </div>
-
-          {/* Resume URL */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
-              Resume / CV Link
-            </label>
-            <input
-              type="text"
-              {...register('resume_url')}
-              placeholder="https://example.com/resume.pdf or #"
-              className="w-full px-4 py-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/15 focus:border-sky-400/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-sky-400/20 text-foreground text-sm outline-none transition-all placeholder:text-foreground/30"
-            />
           </div>
 
           {/* Submit Button */}

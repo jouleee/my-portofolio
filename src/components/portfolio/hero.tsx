@@ -71,7 +71,6 @@ export default function Hero({ profile }: HeroProps) {
   const name = profile?.full_name || 'Joel';
   const role = profile?.title || 'Lead Software Engineer & Full Stack Architect';
   const bio = profile?.bio || 'Building premium web experiences at the intersection of high-fidelity interaction, elegant visual design, and clean scalable code. Award-winning aesthetics meets peak performance.';
-  const yearsExp = profile?.years_experience || '6+';
 
   return (
     <section
@@ -181,17 +180,6 @@ export default function Hero({ profile }: HeroProps) {
             <p className="text-sm sm:text-base md:text-lg font-space-grotesk text-foreground/75 leading-relaxed max-w-2xl mb-8">
               {bio}
             </p>
-
-            {/* SINGLE KPI STAT CARD: Exactly 1 stat with 1 single line of text */}
-            <div className="inline-flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md shadow-lg max-w-fit mb-8 hover:border-sky-400/30 transition-colors">
-              <span className="text-3xl sm:text-4xl font-black font-syne text-sky-400 tracking-tight shrink-0">
-                {yearsExp}
-              </span>
-              <div className="h-8 w-px bg-white/[0.1] shrink-0" />
-              <span className="text-sm sm:text-base font-bold font-space-grotesk text-foreground tracking-wide">
-                Years Working Experience
-              </span>
-            </div>
 
             {/* Primary Action Buttons & Social Links */}
             <div className="flex flex-wrap items-center gap-3.5">

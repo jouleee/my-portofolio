@@ -272,11 +272,14 @@ export async function updateProfile(profileData: {
       full_name: profileData.full_name,
       title: profileData.title,
       bio: profileData.bio,
-      years_experience: profileData.years_experience || '6+',
       avatar_url: profileData.avatar_url || null,
       resume_url: profileData.resume_url || '#',
       updated_at: new Date().toISOString(),
     };
+
+    if (profileData.years_experience) {
+      payload.years_experience = profileData.years_experience;
+    }
 
     if (existing?.id) {
       let { error } = await supabase

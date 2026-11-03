@@ -247,7 +247,7 @@ export default function ProjectsShowcase({ projects }: ProjectsShowcaseProps) {
             Featured Projects
           </h2>
           <p className="text-foreground/60 font-space-grotesk text-base">
-            No projects published yet. Manage your projects in the admin dashboard.
+            No projects published yet.
           </p>
         </div>
       </section>

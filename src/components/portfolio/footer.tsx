@@ -21,7 +21,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Joel.
           </p>
           <p className="text-xs text-foreground/40 mt-1.5 font-medium">
-            Next.js 16 • React 19 • Tailwind CSS • Framer Motion Parallax
+            Next.js 16 • React 19 • Tailwind CSS
           </p>
         </div>
 
